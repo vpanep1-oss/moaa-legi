@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: louc-moaa-legislation-backend
+    runtime: node
+    buildCommand: cd backend && npm install && npm run build
+    startCommand: cd backend && npm start
+    envVars:
+      - key: PORT
+        value: 4000
+      - key: NODE_ENV
+        value: production
+      - key: RUN_INGEST_ON_START
+        value: "false"
+      - key: PROPUBLICA_API_KEY
+        sync: false
+      - key: LEGISCAN_API_KEY
+        sync: false
+      - key: INGEST_SECRET
+        sync: false

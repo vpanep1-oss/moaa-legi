@@ -1,0 +1,28 @@
+version: '3.9'
+services:
+  backend:
+    build: ../backend
+    ports:
+      - '4000:4000'
+    environment:
+      - DATABASE_URL=postgres://postgres:password@db:5432/lcodashboard
+      - INGEST_SECRET=changeme
+      - RUN_INGEST_ON_START=false
+    depends_on:
+      - db
+  frontend:
+    image: node:20
+    working_dir: /app
+    volumes:
+      - ../frontend:/app
+    command: npm install && npm run dev -- --host 0.0.0.0
+    ports:
+      - '5173:5173'
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: lcodb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - '5432:5432'
