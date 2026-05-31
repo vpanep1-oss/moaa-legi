@@ -11,8 +11,6 @@ services:
         value: production
       - key: RUN_INGEST_ON_START
         value: "false"
-      - key: PROPUBLICA_API_KEY
-        sync: false
       - key: LEGISCAN_API_KEY
         sync: false
       - key: INGEST_SECRET

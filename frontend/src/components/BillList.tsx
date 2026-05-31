@@ -15,9 +15,12 @@ export default function BillList({ bills }: BillListProps) {
       <ul>
         {bills.map((bill) => (
           <li key={bill.id} className="bill-item">
-            <h3>
-              <Link to={`/bills/${bill.id}`}>{bill.title}</Link>
-            </h3>
+            <div className="bill-item-header">
+              <h3>
+                <Link to={`/bills/${bill.id}`}>{bill.title}</Link>
+              </h3>
+              <span className={`bill-badge bill-badge-${bill.source}`}>{bill.source}</span>
+            </div>
             <p>{bill.summary}</p>
             <p>
               <strong>Status:</strong> {bill.status}

@@ -15,5 +15,4 @@ Copy `.env.example` to `.env` and set:
 
 - `DATABASE_URL`
 - `INGEST_SECRET`
-- `PROPUBLICA_API_KEY`
 - `LEGISCAN_API_KEY`

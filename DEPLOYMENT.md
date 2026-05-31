@@ -24,7 +24,7 @@ git push -u origin main
      - `RENDER_DEPLOY_URL` = Render deploy hook (after setup below)
      - `BACKEND_INGEST_URL` = Backend deployed URL (for daily ingest)
      - `INGEST_SECRET` = Your chosen secret token
-     - `PROPUBLICA_API_KEY` = Get from https://www.propublica.org/datastore/api
+
      - `LEGISCAN_API_KEY` = Get from https://legiscan.com/legiscan-api
 
 ## Frontend: GitHub Pages (Automatic)
@@ -57,7 +57,6 @@ In Render service settings, add:
 ```
 PORT=4000
 RUN_INGEST_ON_START=false
-PROPUBLICA_API_KEY=your_key
 LEGISCAN_API_KEY=your_key
 INGEST_SECRET=your_secret_token
 NODE_ENV=production

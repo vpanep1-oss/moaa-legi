@@ -15,11 +15,11 @@ router.post('/ingest/daily', async (req, res) => {
   }
 
   try {
-    await runDailyIngest();
-    return res.json({ success: true });
+    const ingestSummary = await runDailyIngest();
+    return res.json({ success: true, ingest: ingestSummary });
   } catch (error) {
     console.error('Daily ingest error', error);
-    return res.status(500).json({ error: 'Ingest failed' });
+    return res.status(500).json({ error: 'Ingest failed', details: error instanceof Error ? error.message : String(error) });
   }
 });
 

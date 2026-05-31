@@ -31,7 +31,6 @@ Frontend is automatically deployed to GitHub Pages on every push to `main`.
 3. Configure environment variables in Render:
    - `PORT=4000`
    - `RUN_INGEST_ON_START=false`
-   - `PROPUBLICA_API_KEY=<your-key>` (get from https://www.propublica.org/datastore/api)
    - `LEGISCAN_API_KEY=<your-key>` (get from https://legiscan.com/legiscan-api)
    - `INGEST_SECRET=<your-secret>`
 
@@ -61,7 +60,7 @@ cd louc-moaa-legislation-dashboard
 ```powershell
 cd backend
 copy .env.example .env
-# edit .env and add PROPUBLICA_API_KEY, LEGISCAN_API_KEY, and INGEST_SECRET
+# edit .env and add LEGISCAN_API_KEY and INGEST_SECRET
 ```
 
 3. Backend:
@@ -85,10 +84,6 @@ The frontend proxy will forward `/api` calls to the backend at `http://localhost
 
 ## API Keys
 
-- **ProPublica Congress API** — https://www.propublica.org/datastore/api/congress-api/
-  - Free tier available
-  - Provides federal bills and voting records
-  
 - **LegiScan API** — https://legiscan.com/legiscan-api
-  - Free tier available  
-  - Provides state-level legislation (Louisiana)
+  - Free tier available
+  - Provides both federal and state legislation, including Louisiana
