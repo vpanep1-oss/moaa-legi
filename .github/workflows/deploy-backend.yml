@@ -19,7 +19,7 @@ jobs:
         run: npm install
       - name: Clean backend
         working-directory: backend
-        run: rm -Force -Recurse dist -ErrorAction SilentlyContinue; echo "Cleaned dist"
+        run: rm -rf dist && echo "Cleaned dist"
       - name: Build backend
         working-directory: backend
         run: npm run build
