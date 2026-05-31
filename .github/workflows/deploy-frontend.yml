@@ -8,8 +8,18 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          fetch-depth: 0
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
@@ -24,7 +34,9 @@ jobs:
           VITE_API_URL: ${{ secrets.BACKEND_URL || 'http://localhost:4000' }}
         run: npm run build
       - name: Deploy to GitHub Pages
+        id: deployment
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: frontend/dist
+          cname: false

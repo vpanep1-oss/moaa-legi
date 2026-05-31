@@ -21,11 +21,9 @@ jobs:
         working-directory: backend
         run: npm run build
       - name: Deploy to Render
-        if: ${{ secrets.RENDER_DEPLOY_URL != '' }}
         env:
           RENDER_DEPLOY_URL: ${{ secrets.RENDER_DEPLOY_URL }}
           PORT: ${{ secrets.PORT || '4000' }}
-          PROPUBLICA_API_KEY: ${{ secrets.PROPUBLICA_API_KEY }}
           LEGISCAN_API_KEY: ${{ secrets.LEGISCAN_API_KEY }}
           INGEST_SECRET: ${{ secrets.INGEST_SECRET }}
           RUN_INGEST_ON_START: 'false'
