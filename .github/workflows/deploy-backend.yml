@@ -19,8 +19,7 @@ jobs:
         run: npm install
       - name: Clean backend
         working-directory: backend
-        run: Remove-Item -Recurse -Force dist -ErrorAction SilentlyContinue; Write-Host "Cleaned dist"
-        shell: powershell
+        run: rm -rf dist && echo "Cleaned dist"
       - name: Build backend
         working-directory: backend
         run: npm run build
