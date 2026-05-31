@@ -20,6 +20,9 @@ jobs:
       - name: Install backend dependencies
         working-directory: backend
         run: npm install
+      - name: Clean backend
+        working-directory: backend
+        run: rm -Force -Recurse dist -ErrorAction SilentlyContinue; echo "Cleaned dist"
       - name: Build backend
         working-directory: backend
         run: npm run build
