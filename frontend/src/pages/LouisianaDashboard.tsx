@@ -9,7 +9,8 @@ export default function LouisianaDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/louisiana')
+    const apiUrl = import.meta.env.VITE_API_URL || '';
+    fetch(`${apiUrl}/api/louisiana`)
       .then((res) => res.json())
       .then((json) => setData(json.bills || []))
       .catch(console.error)
