@@ -31,7 +31,7 @@ jobs:
         working-directory: frontend
         env:
           VITE_BASE_PATH: /${{ github.event.repository.name }}/
-          VITE_API_URL: ${{ secrets.BACKEND_URL || 'http://localhost:4000' }}
+          VITE_API_URL: ${{ vars.BACKEND_URL || 'http://localhost:4000' }}
         run: npm run build
       - name: Deploy to GitHub Pages
         id: deployment
