@@ -88,13 +88,15 @@ async function fetchMasterList(stateId: number): Promise<FetchResult> {
 
   const queryUrl = `${API_BASE}?key=${LEGISCAN_API_KEY}&op=getMasterList&state=${stateId}`;
   const response = await axios.get(queryUrl);
+
+  if (response.data.alert) {
+    console.error(`LegiScan API error for state ${stateId}:`, response.data.alert);
+    return { bills: [], queryUrl, totalEntries: 0, matchedEntries: 0 };
+  }
+
   const billEntries = extractBillEntries(response.data);
 
-  console.log(`LegiScan getMasterList for state ${stateId}:`, {
-    url: queryUrl.replace(LEGISCAN_API_KEY, 'REDACTED'),
-    entriesFound: billEntries.length,
-    responseKeys: Object.keys(response.data)
-  });
+  console.log(`LegiScan getMasterList for state ${stateId}: found ${billEntries.length} bills`);
 
   return {
     bills: billEntries,
