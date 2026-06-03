@@ -9,8 +9,7 @@ export default function LouisianaDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const apiUrl = import.meta.env.VITE_API_URL || '';
-    fetch(`${apiUrl}/api/louisiana`)
+    fetch('https://moaa-legi.onrender.com/api/louisiana')
       .then((res) => res.json())
       .then((json) => setData(json.bills || []))
       .catch(console.error)
