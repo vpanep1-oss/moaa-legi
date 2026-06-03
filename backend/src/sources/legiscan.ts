@@ -2,8 +2,8 @@ import axios from 'axios';
 import { legislationKeywords } from '../keywords.js';
 
 const LEGISCAN_API_KEY = process.env.LEGISCAN_API_KEY ?? '';
-const LOUISIANA_STATE_ID = 22;
-const FEDERAL_STATE_ID = 1;
+const LOUISIANA_STATE = 'LA';
+const FEDERAL_STATE = 'US';
 const API_BASE = 'https://api.legiscan.com/';
 
 type FetchResult = {
@@ -80,47 +80,42 @@ async function fetchBillDetail(billId: number) {
   }
 }
 
-async function fetchMasterList(stateId: number): Promise<FetchResult> {
+async function fetchMasterList(state: string): Promise<FetchResult> {
   if (!LEGISCAN_API_KEY) {
     console.warn('LEGISCAN_API_KEY is not configured');
     return { bills: [], queryUrl: '', totalEntries: 0, matchedEntries: 0 };
   }
 
-  const queryUrl = `${API_BASE}?key=${LEGISCAN_API_KEY}&op=getMasterList&state=${stateId}`;
+  const query = legislationKeywords.slice(0, 5).join(' OR ');
+  const queryUrl = `${API_BASE}?key=${LEGISCAN_API_KEY}&op=getSearch&state=${state}&query=${encodeURIComponent(query)}`;
   const response = await axios.get(queryUrl);
 
   if (response.data.alert) {
-    console.error(`LegiScan API error for state ${stateId}:`, response.data.alert);
+    console.error(`LegiScan API error for state ${state}:`, response.data.alert);
     return { bills: [], queryUrl, totalEntries: 0, matchedEntries: 0 };
   }
 
   const billEntries = extractBillEntries(response.data);
 
-  console.log(`LegiScan getMasterList for state ${stateId}: found ${billEntries.length} bills`);
+  console.log(`LegiScan search for state ${state}: found ${billEntries.length} bills`);
 
   return {
     bills: billEntries,
     rawResponse: response.data,
     queryUrl,
     totalEntries: billEntries.length,
-    matchedEntries: 0
+    matchedEntries: billEntries.length
   };
 }
 
-async function buildBillList(stateId: number, normalize: (bill: any) => any): Promise<FetchResult> {
-  const masterList = await fetchMasterList(stateId);
-  if (!masterList.queryUrl) {
-    return masterList;
+async function buildBillList(state: string, normalize: (bill: any) => any): Promise<FetchResult> {
+  const searchResults = await fetchMasterList(state);
+  if (!searchResults.queryUrl) {
+    return searchResults;
   }
 
-  const matchingEntries = masterList.bills.filter((entry) => {
-    const title = entry.title || entry.bill_number || entry.short_title || entry.description || '';
-    const summary = entry.summary || entry.description || '';
-    return containsKeywords(`${title} ${summary}`);
-  });
-
   const details = await Promise.allSettled(
-    matchingEntries.slice(0, 50).map((entry) => {
+    searchResults.bills.slice(0, 50).map((entry) => {
       const billId = Number(entry.bill_id || entry.id || entry.bill_id);
       return billId ? fetchBillDetail(billId) : Promise.resolve(null);
     })
@@ -132,17 +127,17 @@ async function buildBillList(stateId: number, normalize: (bill: any) => any): Pr
 
   return {
     bills,
-    rawResponse: masterList.rawResponse,
-    queryUrl: masterList.queryUrl,
-    totalEntries: masterList.totalEntries,
-    matchedEntries: matchingEntries.length
+    rawResponse: searchResults.rawResponse,
+    queryUrl: searchResults.queryUrl,
+    totalEntries: searchResults.totalEntries,
+    matchedEntries: searchResults.matchedEntries
   };
 }
 
 export async function fetchFederalBills() {
-  return buildBillList(FEDERAL_STATE_ID, normalizeFederalBill);
+  return buildBillList(FEDERAL_STATE, normalizeFederalBill);
 }
 
 export async function fetchLouisianaBills() {
-  return buildBillList(LOUISIANA_STATE_ID, normalizeLouisianaBill);
+  return buildBillList(LOUISIANA_STATE, normalizeLouisianaBill);
 }
