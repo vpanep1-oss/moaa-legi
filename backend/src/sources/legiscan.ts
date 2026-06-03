@@ -125,6 +125,10 @@ async function buildBillList(state: string, normalize: (bill: any) => any): Prom
     .filter((result) => result.status === 'fulfilled' && result.value)
     .map((result) => normalize((result as PromiseFulfilledResult<any>).value));
 
+  if (bills.length > 0) {
+    console.log(`Sample normalized bill:`, JSON.stringify(bills[0], null, 2));
+  }
+
   return {
     bills,
     rawResponse: searchResults.rawResponse,
