@@ -86,30 +86,39 @@ async function fetchMasterList(stateId: number): Promise<FetchResult> {
     return { bills: [], queryUrl: '', totalEntries: 0, matchedEntries: 0 };
   }
 
-  const query = legislationKeywords
-    .slice(0, 5)
-    .join(' OR ');
-  const queryUrl = `${API_BASE}?key=${LEGISCAN_API_KEY}&op=search&state=${stateId}&query=${encodeURIComponent(query)}`;
+  const queryUrl = `${API_BASE}?key=${LEGISCAN_API_KEY}&op=getMasterList&state=${stateId}`;
   const response = await axios.get(queryUrl);
   const billEntries = extractBillEntries(response.data);
+
+  console.log(`LegiScan getMasterList for state ${stateId}:`, {
+    url: queryUrl.replace(LEGISCAN_API_KEY, 'REDACTED'),
+    entriesFound: billEntries.length,
+    responseKeys: Object.keys(response.data)
+  });
 
   return {
     bills: billEntries,
     rawResponse: response.data,
     queryUrl,
     totalEntries: billEntries.length,
-    matchedEntries: billEntries.length
+    matchedEntries: 0
   };
 }
 
 async function buildBillList(stateId: number, normalize: (bill: any) => any): Promise<FetchResult> {
-  const searchResults = await fetchMasterList(stateId);
-  if (!searchResults.queryUrl) {
-    return searchResults;
+  const masterList = await fetchMasterList(stateId);
+  if (!masterList.queryUrl) {
+    return masterList;
   }
 
+  const matchingEntries = masterList.bills.filter((entry) => {
+    const title = entry.title || entry.bill_number || entry.short_title || entry.description || '';
+    const summary = entry.summary || entry.description || '';
+    return containsKeywords(`${title} ${summary}`);
+  });
+
   const details = await Promise.allSettled(
-    searchResults.bills.slice(0, 50).map((entry) => {
+    matchingEntries.slice(0, 50).map((entry) => {
       const billId = Number(entry.bill_id || entry.id || entry.bill_id);
       return billId ? fetchBillDetail(billId) : Promise.resolve(null);
     })
@@ -121,10 +130,10 @@ async function buildBillList(stateId: number, normalize: (bill: any) => any): Pr
 
   return {
     bills,
-    rawResponse: searchResults.rawResponse,
-    queryUrl: searchResults.queryUrl,
-    totalEntries: searchResults.totalEntries,
-    matchedEntries: searchResults.matchedEntries
+    rawResponse: masterList.rawResponse,
+    queryUrl: masterList.queryUrl,
+    totalEntries: masterList.totalEntries,
+    matchedEntries: matchingEntries.length
   };
 }
 
