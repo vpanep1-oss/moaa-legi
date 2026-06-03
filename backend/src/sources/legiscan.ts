@@ -2,8 +2,8 @@ import axios from 'axios';
 import { legislationKeywords } from '../keywords.js';
 
 const LEGISCAN_API_KEY = process.env.LEGISCAN_API_KEY ?? '';
-const LOUISIANA_STATE_ID = 41;
-const FEDERAL_STATE_ID = 0;
+const LOUISIANA_STATE_ID = 18;
+const FEDERAL_STATE_ID = 2;
 const API_BASE = 'https://api.legiscan.com/';
 
 type FetchResult = {
