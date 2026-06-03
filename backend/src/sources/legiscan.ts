@@ -20,7 +20,7 @@ function normalizeFederalBill(bill: any) {
     source: 'federal' as const,
     title: bill.title || bill.short_title || bill.description || 'Unknown bill',
     summary: bill.summary || bill.description || bill.action || '',
-    status: bill.status || bill.last_action || 'Unknown',
+    status: String(bill.status || bill.last_action || 'Unknown'),
     introducedDate: bill.introduced_date || bill.date || bill.session_year || undefined,
     lastActionDate: bill.last_action_date || bill.date || undefined,
     subjects: bill.subjects || bill.title?.split(' ') || [],
@@ -35,7 +35,7 @@ function normalizeLouisianaBill(bill: any) {
     source: 'louisiana' as const,
     title: bill.title || bill.bill_number || bill.short_title || bill.description || 'Unknown bill',
     summary: bill.summary || bill.description || bill.action || '',
-    status: bill.status || bill.last_action || 'Unknown',
+    status: String(bill.status || bill.last_action || 'Unknown'),
     introducedDate: bill.introduced_date || bill.date || bill.session_year || undefined,
     lastActionDate: bill.last_action_date || bill.date || undefined,
     subjects: bill.subjects || bill.title?.split(' ') || [],
@@ -124,10 +124,6 @@ async function buildBillList(state: string, normalize: (bill: any) => any): Prom
   const bills = details
     .filter((result) => result.status === 'fulfilled' && result.value)
     .map((result) => normalize((result as PromiseFulfilledResult<any>).value));
-
-  if (bills.length > 0) {
-    console.log(`Sample normalized bill:`, JSON.stringify(bills[0], null, 2));
-  }
 
   return {
     bills,
