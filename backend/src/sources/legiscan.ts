@@ -72,21 +72,26 @@ function extractBillEntries(masterListResponse: any) {
   });
 }
 
-let loggedBillDetails = false;
+let loggedFederal = false;
+let loggedLouisiana = false;
 
 async function fetchBillDetail(billId: number) {
   try {
     const response = await axios.get(`${API_BASE}?key=${LEGISCAN_API_KEY}&op=getBill&id=${billId}`);
     const bill = response.data.bill ?? null;
-    if (bill && !loggedBillDetails) {
-      console.log(`Bill ${billId} structure:`, {
-        has_history: !!bill.history,
+
+    if (bill && !loggedFederal && bill.state_id === 2) {
+      console.log(`Federal bill ${billId} last action:`, bill.history?.[bill.history.length - 1]?.action);
+      loggedFederal = true;
+    }
+    if (bill && !loggedLouisiana && bill.state_id === 18) {
+      console.log(`Louisiana bill ${billId} structure:`, {
+        state_id: bill.state_id,
         history_length: bill.history?.length,
-        first_history: bill.history?.[0],
         last_history: bill.history?.[bill.history?.length - 1],
-        status_action: bill.status_action
+        bill_keys: Object.keys(bill).slice(0, 20)
       });
-      loggedBillDetails = true;
+      loggedLouisiana = true;
     }
     return bill;
   } catch (error) {
