@@ -43,9 +43,29 @@ export default function BillList({ bills }: BillListProps) {
               <p>
                 <strong>Status:</strong> {bill.status}
               </p>
-              <p>
-                <strong>Last action:</strong> {bill.lastActionDate ?? 'Unknown'}
-              </p>
+              {bill.introducedDate && (
+                <p>
+                  <strong>Introduced:</strong> {new Date(bill.introducedDate).toLocaleDateString()}
+                </p>
+              )}
+              {bill.subjects && bill.subjects.length > 0 && (
+                <p>
+                  <strong>Topics:</strong>{' '}
+                  {Array.isArray(bill.subjects)
+                    ? bill.subjects
+                        .map((s) => (typeof s === 'string' ? s : s.subject_name || s))
+                        .join(', ')
+                    : bill.subjects}
+                </p>
+              )}
+              {bill.sponsors && bill.sponsors.length > 0 && (
+                <p>
+                  <strong>Sponsors:</strong>{' '}
+                  {bill.sponsors
+                    .map((s) => (typeof s === 'string' ? s : s.name || s))
+                    .join(', ')}
+                </p>
+              )}
               {bill.billUrl ? (
                 <p>
                   <a href={bill.billUrl} target="_blank" rel="noreferrer">
