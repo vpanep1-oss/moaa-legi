@@ -10,10 +10,10 @@ interface SummaryMetrics {
 
 function categorizeStatus(status: string) {
   const normalized = status?.toLowerCase() ?? '';
-  if (/passed|enacted|approved|agreed/.test(normalized)) {
+  if (/passed|enacted|approved|agreed|engrossed|effective|signed|yeas|became law/.test(normalized)) {
     return 'passed';
   }
-  if (/rejected|failed|vetoed|dismissed|withdrawn/.test(normalized)) {
+  if (/rejected|failed|vetoed|dismissed|withdrawn|died|nays/.test(normalized)) {
     return 'failed';
   }
   return 'pending';
