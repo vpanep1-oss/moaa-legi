@@ -14,14 +14,39 @@ type FetchResult = {
   matchedEntries: number;
 };
 
+function findMeaningfulAction(history: any[], completed: number) {
+  if (!history || history.length === 0) {
+    return 'Introduced';
+  }
+
+  if (completed === 1) {
+    for (let i = history.length - 1; i >= 0; i--) {
+      const action = history[i].action || '';
+      if (/effective|passed|signed|enacted/i.test(action)) {
+        return action;
+      }
+    }
+    return history[history.length - 1].action || 'Passed';
+  }
+
+  for (let i = history.length - 1; i >= 0; i--) {
+    const action = history[i].action || '';
+    if (/failed|rejected|vetoed|dismissed|withdrawn|died/i.test(action)) {
+      return action;
+    }
+  }
+
+  return history[history.length - 1].action || 'Introduced';
+}
+
 function normalizeFederalBill(bill: any) {
-  const lastAction = bill.history?.[bill.history.length - 1]?.action || bill.last_action || 'Introduced';
+  const statusAction = findMeaningfulAction(bill.history, bill.completed);
   return {
     id: `federal-${bill.bill_id || bill.id}`,
     source: 'federal' as const,
     title: bill.title || bill.short_title || bill.description || 'Unknown bill',
     summary: bill.summary || bill.description || bill.action || '',
-    status: lastAction,
+    status: statusAction,
     introducedDate: bill.introduced_date || bill.date || bill.session_year || undefined,
     lastActionDate: bill.last_action_date || bill.date || undefined,
     subjects: bill.subjects || bill.title?.split(' ') || [],
@@ -31,13 +56,13 @@ function normalizeFederalBill(bill: any) {
 }
 
 function normalizeLouisianaBill(bill: any) {
-  const lastAction = bill.history?.[bill.history.length - 1]?.action || bill.last_action || 'Introduced';
+  const statusAction = findMeaningfulAction(bill.history, bill.completed);
   return {
     id: `louisiana-${bill.bill_id || bill.id}`,
     source: 'louisiana' as const,
     title: bill.title || bill.bill_number || bill.short_title || bill.description || 'Unknown bill',
     summary: bill.summary || bill.description || bill.action || '',
-    status: lastAction,
+    status: statusAction,
     introducedDate: bill.introduced_date || bill.date || bill.session_year || undefined,
     lastActionDate: bill.last_action_date || bill.date || undefined,
     subjects: bill.subjects || bill.title?.split(' ') || [],
@@ -72,29 +97,10 @@ function extractBillEntries(masterListResponse: any) {
   });
 }
 
-let loggedFederal = false;
-let loggedLouisiana = false;
-
 async function fetchBillDetail(billId: number) {
   try {
     const response = await axios.get(`${API_BASE}?key=${LEGISCAN_API_KEY}&op=getBill&id=${billId}`);
-    const bill = response.data.bill ?? null;
-
-    if (bill && !loggedFederal && bill.state_id === 2) {
-      console.log(`Federal bill ${billId} last action:`, bill.history?.[bill.history.length - 1]?.action);
-      loggedFederal = true;
-    }
-    if (bill && !loggedLouisiana && bill.state_id === 18) {
-      console.log(`Louisiana bill ${billId} status info:`, {
-        status: bill.status,
-        status_date: bill.status_date,
-        progress: bill.progress,
-        completed: bill.completed,
-        last_history_action: bill.history?.[bill.history?.length - 1]?.action
-      });
-      loggedLouisiana = true;
-    }
-    return bill;
+    return response.data.bill ?? null;
   } catch (error) {
     console.warn(`Failed to fetch LegiScan bill ${billId}`, error);
     return null;
