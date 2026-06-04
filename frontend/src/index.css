@@ -181,6 +181,27 @@ section h3 {
   color: #059669;
 }
 
+.bill-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.bill-status-passed {
+  background: rgba(34, 197, 94, 0.12);
+  color: #16a34a;
+}
+
+.bill-status-failed {
+  background: rgba(239, 68, 68, 0.12);
+  color: #dc2626;
+}
+
+.bill-status-pending {
+  background: rgba(245, 158, 11, 0.12);
+  color: #b45309;
+}
+
 .bill-item p {
   margin: 8px 0;
   line-height: 1.65;
