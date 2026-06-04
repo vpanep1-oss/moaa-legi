@@ -15,12 +15,13 @@ type FetchResult = {
 };
 
 function normalizeFederalBill(bill: any) {
+  const lastAction = bill.history?.[bill.history.length - 1]?.action || bill.last_action || 'Introduced';
   return {
     id: `federal-${bill.bill_id || bill.id}`,
     source: 'federal' as const,
     title: bill.title || bill.short_title || bill.description || 'Unknown bill',
     summary: bill.summary || bill.description || bill.action || '',
-    status: String(bill.status || bill.last_action || 'Unknown'),
+    status: lastAction,
     introducedDate: bill.introduced_date || bill.date || bill.session_year || undefined,
     lastActionDate: bill.last_action_date || bill.date || undefined,
     subjects: bill.subjects || bill.title?.split(' ') || [],
@@ -30,12 +31,13 @@ function normalizeFederalBill(bill: any) {
 }
 
 function normalizeLouisianaBill(bill: any) {
+  const lastAction = bill.history?.[bill.history.length - 1]?.action || bill.last_action || 'Introduced';
   return {
     id: `louisiana-${bill.bill_id || bill.id}`,
     source: 'louisiana' as const,
     title: bill.title || bill.bill_number || bill.short_title || bill.description || 'Unknown bill',
     summary: bill.summary || bill.description || bill.action || '',
-    status: String(bill.status || bill.last_action || 'Unknown'),
+    status: lastAction,
     introducedDate: bill.introduced_date || bill.date || bill.session_year || undefined,
     lastActionDate: bill.last_action_date || bill.date || undefined,
     subjects: bill.subjects || bill.title?.split(' ') || [],
@@ -70,17 +72,10 @@ function extractBillEntries(masterListResponse: any) {
   });
 }
 
-let loggedBillStatus = false;
-
 async function fetchBillDetail(billId: number) {
   try {
     const response = await axios.get(`${API_BASE}?key=${LEGISCAN_API_KEY}&op=getBill&id=${billId}`);
-    const bill = response.data.bill ?? null;
-    if (bill && !loggedBillStatus) {
-      console.log(`Sample bill status fields:`, { status: bill.status, last_status: bill.last_status, last_action: bill.last_action, history: bill.history?.slice(0, 2) });
-      loggedBillStatus = true;
-    }
-    return bill;
+    return response.data.bill ?? null;
   } catch (error) {
     console.warn(`Failed to fetch LegiScan bill ${billId}`, error);
     return null;
