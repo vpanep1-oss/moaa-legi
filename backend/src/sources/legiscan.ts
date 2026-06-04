@@ -72,10 +72,23 @@ function extractBillEntries(masterListResponse: any) {
   });
 }
 
+let loggedBillDetails = false;
+
 async function fetchBillDetail(billId: number) {
   try {
     const response = await axios.get(`${API_BASE}?key=${LEGISCAN_API_KEY}&op=getBill&id=${billId}`);
-    return response.data.bill ?? null;
+    const bill = response.data.bill ?? null;
+    if (bill && !loggedBillDetails) {
+      console.log(`Bill ${billId} structure:`, {
+        has_history: !!bill.history,
+        history_length: bill.history?.length,
+        first_history: bill.history?.[0],
+        last_history: bill.history?.[bill.history?.length - 1],
+        status_action: bill.status_action
+      });
+      loggedBillDetails = true;
+    }
+    return bill;
   } catch (error) {
     console.warn(`Failed to fetch LegiScan bill ${billId}`, error);
     return null;
