@@ -41,6 +41,21 @@ function findMeaningfulAction(history: any[], completed: number) {
 
 function normalizeFederalBill(bill: any) {
   const statusAction = findMeaningfulAction(bill.history, bill.completed);
+  const subjects = bill.subjects
+    ? Array.isArray(bill.subjects)
+      ? bill.subjects.map((s: any) => (typeof s === 'string' ? s : s.subject_name || String(s)))
+      : []
+    : [];
+  const sponsors = bill.sponsors
+    ? Array.isArray(bill.sponsors)
+      ? bill.sponsors.map((s: any) => (typeof s === 'string' ? s : s.name || String(s)))
+      : bill.sponsor_name
+      ? [bill.sponsor_name]
+      : []
+    : bill.sponsor_name
+    ? [bill.sponsor_name]
+    : [];
+
   return {
     id: `federal-${bill.bill_id || bill.id}`,
     source: 'federal' as const,
@@ -49,14 +64,29 @@ function normalizeFederalBill(bill: any) {
     status: statusAction,
     introducedDate: bill.introduced_date || bill.date || bill.session_year || undefined,
     lastActionDate: bill.last_action_date || bill.date || undefined,
-    subjects: bill.subjects || bill.title?.split(' ') || [],
-    sponsors: bill.sponsor_name ? [bill.sponsor_name] : bill.sponsors || [],
+    subjects,
+    sponsors,
     billUrl: bill.url || bill.document_url || ''
   };
 }
 
 function normalizeLouisianaBill(bill: any) {
   const statusAction = findMeaningfulAction(bill.history, bill.completed);
+  const subjects = bill.subjects
+    ? Array.isArray(bill.subjects)
+      ? bill.subjects.map((s: any) => (typeof s === 'string' ? s : s.subject_name || String(s)))
+      : []
+    : [];
+  const sponsors = bill.sponsors
+    ? Array.isArray(bill.sponsors)
+      ? bill.sponsors.map((s: any) => (typeof s === 'string' ? s : s.name || String(s)))
+      : bill.sponsor_name
+      ? [bill.sponsor_name]
+      : []
+    : bill.sponsor_name
+    ? [bill.sponsor_name]
+    : [];
+
   return {
     id: `louisiana-${bill.bill_id || bill.id}`,
     source: 'louisiana' as const,
@@ -65,8 +95,8 @@ function normalizeLouisianaBill(bill: any) {
     status: statusAction,
     introducedDate: bill.introduced_date || bill.date || bill.session_year || undefined,
     lastActionDate: bill.last_action_date || bill.date || undefined,
-    subjects: bill.subjects || bill.title?.split(' ') || [],
-    sponsors: bill.sponsor_name ? [bill.sponsor_name] : bill.sponsors || [],
+    subjects,
+    sponsors,
     billUrl: bill.url || bill.document_url || ''
   };
 }

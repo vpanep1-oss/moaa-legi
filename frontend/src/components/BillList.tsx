@@ -50,20 +50,12 @@ export default function BillList({ bills }: BillListProps) {
               )}
               {bill.subjects && bill.subjects.length > 0 && (
                 <p>
-                  <strong>Topics:</strong>{' '}
-                  {Array.isArray(bill.subjects)
-                    ? bill.subjects
-                        .map((s) => (typeof s === 'string' ? s : s.subject_name || s))
-                        .join(', ')
-                    : bill.subjects}
+                  <strong>Topics:</strong> {bill.subjects.join(', ')}
                 </p>
               )}
               {bill.sponsors && bill.sponsors.length > 0 && (
                 <p>
-                  <strong>Sponsors:</strong>{' '}
-                  {bill.sponsors
-                    .map((s) => (typeof s === 'string' ? s : s.name || s))
-                    .join(', ')}
+                  <strong>Sponsors:</strong> {bill.sponsors.join(', ')}
                 </p>
               )}
               {bill.billUrl ? (
