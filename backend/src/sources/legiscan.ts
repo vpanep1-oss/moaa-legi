@@ -85,11 +85,12 @@ async function fetchBillDetail(billId: number) {
       loggedFederal = true;
     }
     if (bill && !loggedLouisiana && bill.state_id === 18) {
-      console.log(`Louisiana bill ${billId} structure:`, {
-        state_id: bill.state_id,
-        history_length: bill.history?.length,
-        last_history: bill.history?.[bill.history?.length - 1],
-        bill_keys: Object.keys(bill).slice(0, 20)
+      console.log(`Louisiana bill ${billId} status info:`, {
+        status: bill.status,
+        status_date: bill.status_date,
+        progress: bill.progress,
+        completed: bill.completed,
+        last_history_action: bill.history?.[bill.history?.length - 1]?.action
       });
       loggedLouisiana = true;
     }
