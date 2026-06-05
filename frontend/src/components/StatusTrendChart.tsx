@@ -8,12 +8,12 @@ interface TrendPoint {
   pending: number;
 }
 
-const PASSED_REGEX = /passed|enacted|approved|agreed|engrossed|effective|signed|yeas|became law/i;
-const FAILED_REGEX = /rejected|failed|vetoed|dismissed|withdrawn|died|nays/i;
+const FAILED_REGEX = /rejected|failed|vetoed|dismissed|withdrawn|died/i;
+const PASSED_REGEX = /passed|enacted|approved|agreed|engrossed|effective|signed|became law/i;
 
 function categorizeStatus(status: string) {
-  if (PASSED_REGEX.test(status)) return 'passed';
   if (FAILED_REGEX.test(status)) return 'failed';
+  if (PASSED_REGEX.test(status)) return 'passed';
   return 'pending';
 }
 
