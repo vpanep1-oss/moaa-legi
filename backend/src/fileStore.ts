@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import type { Bill } from './models/bill.ts';
 
-const DATA_DIR = path.join(process.cwd(), 'data');
+const DATA_DIR = path.resolve(process.cwd(), 'data');
 const FEDERAL_FILE = path.join(DATA_DIR, 'federal.json');
 const LOUISIANA_FILE = path.join(DATA_DIR, 'louisiana.json');
 
