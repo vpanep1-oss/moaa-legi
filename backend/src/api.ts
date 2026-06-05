@@ -8,7 +8,7 @@ router.get('/health', (_req, res) => {
   res.json({ status: 'ok' });
 });
 
-router.post('/clear-cache', (_req, res) => {
+router.get('/clear-cache', (_req, res) => {
   federalBillStore.length = 0;
   louisianaBillStore.length = 0;
   res.json({ success: true, message: 'Cache cleared' });
