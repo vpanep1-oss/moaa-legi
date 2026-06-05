@@ -1,4 +1,6 @@
 import express from 'express';
+import fs from 'node:fs';
+import path from 'node:path';
 import { runDailyIngest } from './ingest.js';
 import { federalBillStore, louisianaBillStore, findBillById } from './store.js';
 
@@ -11,7 +13,19 @@ router.get('/health', (_req, res) => {
 router.get('/clear-cache', (_req, res) => {
   federalBillStore.length = 0;
   louisianaBillStore.length = 0;
-  res.json({ success: true, message: 'Cache cleared' });
+
+  const dataDir = path.resolve(process.cwd(), 'data');
+  const federalFile = path.join(dataDir, 'federal.json');
+  const louisianaFile = path.join(dataDir, 'louisiana.json');
+
+  try {
+    if (fs.existsSync(federalFile)) fs.unlinkSync(federalFile);
+    if (fs.existsSync(louisianaFile)) fs.unlinkSync(louisianaFile);
+  } catch (error) {
+    console.error('Failed to delete cache files:', error);
+  }
+
+  res.json({ success: true, message: 'Cache and persistent files cleared' });
 });
 
 router.post('/ingest/daily', async (req, res) => {
