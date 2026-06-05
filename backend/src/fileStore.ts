@@ -1,5 +1,5 @@
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 import type { Bill } from './models/bill.ts';
 
 const DATA_DIR = path.resolve(process.cwd(), 'data');
