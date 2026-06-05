@@ -171,8 +171,14 @@ async function buildBillList(state: string, normalize: (bill: any) => any): Prom
     return searchResults;
   }
 
+  const matchingEntries = searchResults.bills.filter((entry) => {
+    const title = entry.title || entry.bill_number || entry.short_title || entry.description || '';
+    const summary = entry.summary || entry.description || '';
+    return containsKeywords(`${title} ${summary}`);
+  });
+
   const details = await Promise.allSettled(
-    searchResults.bills.slice(0, 50).map((entry) => {
+    matchingEntries.slice(0, 50).map((entry) => {
       const billId = Number(entry.bill_id || entry.id || entry.bill_id);
       return billId ? fetchBillDetail(billId) : Promise.resolve(null);
     })
@@ -187,7 +193,7 @@ async function buildBillList(state: string, normalize: (bill: any) => any): Prom
     rawResponse: searchResults.rawResponse,
     queryUrl: searchResults.queryUrl,
     totalEntries: searchResults.totalEntries,
-    matchedEntries: searchResults.matchedEntries
+    matchedEntries: matchingEntries.length
   };
 }
 
