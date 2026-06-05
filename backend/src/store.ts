@@ -1,5 +1,5 @@
 import type { Bill } from './models/bill.ts';
-import { loadFederalBills, loadLouisianaBills, saveFederalBills, saveLouisianaBills } from './fileStore.ts';
+import { loadFederalBills, loadLouisianaBills, saveFederalBills, saveLouisianaBills } from './fileStore.js';
 
 export const federalBillStore: Bill[] = loadFederalBills();
 export const louisianaBillStore: Bill[] = loadLouisianaBills();
