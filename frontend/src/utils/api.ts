@@ -1,6 +1,6 @@
 // API configuration - uses VITE_API_URL environment variable (set by GitHub Actions)
-// Falls back to localhost:4000 for development
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+// Temporary: hardcoded to HTTP for development until proper HTTPS certificate is set up
+const API_URL = import.meta.env.VITE_API_URL || 'http://167.172.158.216';
 
 export function getFederalBillsUrl() {
   return `${API_URL}/api/federal`;
