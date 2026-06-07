@@ -17,19 +17,23 @@ jobs:
       - name: Install backend dependencies
         working-directory: backend
         run: npm install
-      - name: Clean backend
-        working-directory: backend
-        run: rm -rf dist && echo "Cleaned dist"
       - name: Build backend
         working-directory: backend
         run: npm run build
-      - name: Deploy to Render
+      - name: Deploy to DigitalOcean
         env:
-          RENDER_DEPLOY_URL: ${{ secrets.RENDER_DEPLOY_URL }}
-          PORT: ${{ secrets.PORT || '4000' }}
-          LEGISCAN_API_KEY: ${{ secrets.LEGISCAN_API_KEY }}
-          INGEST_SECRET: ${{ secrets.INGEST_SECRET }}
-          RUN_INGEST_ON_START: 'false'
+          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+          DEPLOY_HOST: root@167.172.158.216
         run: |
-          echo "Deploying to Render..."
-          curl "${{ secrets.RENDER_DEPLOY_URL }}"
+          mkdir -p ~/.ssh
+          echo "$DEPLOY_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H 167.172.158.216 >> ~/.ssh/known_hosts
+          ssh -i ~/.ssh/deploy_key $DEPLOY_HOST << 'EOF'
+          cd /home/moaa-legi
+          git pull origin main
+          cd backend
+          npm install
+          npm run build
+          pm2 restart moaa-backend
+          EOF
