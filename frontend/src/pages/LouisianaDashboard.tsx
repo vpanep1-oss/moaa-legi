@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import BillList from '../components/BillList';
 import DashboardSummary from '../components/DashboardSummary';
 import StatusTrendChart from '../components/StatusTrendChart';
+import { getLouisianaBillsUrl } from '../utils/api';
 import type { Bill } from '../types';
 
 export default function LouisianaDashboard() {
@@ -9,7 +10,7 @@ export default function LouisianaDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('https://moaa-legi.onrender.com/api/louisiana')
+    fetch(getLouisianaBillsUrl())
       .then((res) => res.json())
       .then((json) => setData(json.bills || []))
       .catch(console.error)

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import BillList from '../components/BillList';
 import DashboardSummary from '../components/DashboardSummary';
 import StatusTrendChart from '../components/StatusTrendChart';
+import { getFederalBillsUrl } from '../utils/api';
 import type { Bill } from '../types';
 
 export default function FederalDashboard() {
@@ -9,7 +10,7 @@ export default function FederalDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('https://moaa-legi.onrender.com/api/federal')
+    fetch(getFederalBillsUrl())
       .then((res) => res.json())
       .then((json) => setData(json.bills || []))
       .catch(console.error)
