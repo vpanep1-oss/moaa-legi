@@ -1,5 +1,6 @@
-// API configuration - uses ngrok HTTPS tunnel for frontend access
-const API_URL = import.meta.env.VITE_API_URL || 'https://garland-quake-chill.ngrok-free.dev';
+// API configuration - hardcoded to ngrok HTTPS tunnel
+// This bypasses the GitHub Actions BACKEND_URL variable
+const API_URL = 'https://garland-quake-chill.ngrok-free.dev';
 
 export function getFederalBillsUrl() {
   return `${API_URL}/api/federal`;
