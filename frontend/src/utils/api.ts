@@ -1,6 +1,5 @@
-// API configuration - uses VITE_API_URL environment variable (set by GitHub Actions)
-// Temporary: hardcoded to HTTP for development until proper HTTPS certificate is set up
-const API_URL = import.meta.env.VITE_API_URL || 'http://167.172.158.216';
+// API configuration - uses ngrok HTTPS tunnel for frontend access
+const API_URL = import.meta.env.VITE_API_URL || 'https://garland-quake-chill.ngrok-free.dev';
 
 export function getFederalBillsUrl() {
   return `${API_URL}/api/federal`;
