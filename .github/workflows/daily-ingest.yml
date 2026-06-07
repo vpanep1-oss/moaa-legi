@@ -15,4 +15,4 @@ jobs:
           curl -X POST \
             -H "Content-Type: application/json" \
             -H "x-ingest-token: ${{ secrets.INGEST_SECRET }}" \
-            "${{ secrets.BACKEND_INGEST_URL }}/api/ingest/daily"
+            "${{ vars.BACKEND_URL }}/api/ingest/daily"
