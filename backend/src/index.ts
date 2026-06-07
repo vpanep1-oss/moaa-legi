@@ -7,7 +7,10 @@ import { runDailyIngest } from './ingest.js';
 dotenv.config();
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: ['https://vpanep1-oss.github.io', 'http://localhost:3000', 'http://localhost:5173'],
+  credentials: true
+}));
 app.use(express.json());
 app.use('/api', apiRouter);
 
