@@ -1,6 +1,4 @@
-// API configuration - hardcoded to ngrok HTTPS tunnel
-// This bypasses the GitHub Actions BACKEND_URL variable
-const API_URL = 'https://garland-quake-chill.ngrok-free.dev';
+const API_URL = 'https://moaa-legi.com';
 
 export function getFederalBillsUrl() {
   return `${API_URL}/api/federal`;
