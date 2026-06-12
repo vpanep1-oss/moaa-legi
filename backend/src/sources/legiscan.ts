@@ -106,25 +106,24 @@ function containsKeywords(text: string) {
   return legislationKeywords.some((keyword: string) => lower.includes(keyword));
 }
 
-function extractBillEntries(masterListResponse: any) {
-  const masterList = masterListResponse.masterList ?? masterListResponse.masterlist ?? masterListResponse;
-  if (!masterList) {
+function extractBillEntries(response: any) {
+  const searchResult = response.searchresult || response.masterList || response.masterlist || response;
+  if (!searchResult) {
     return [];
   }
 
-  if (Array.isArray(masterList)) {
-    return masterList;
+  if (Array.isArray(searchResult)) {
+    return searchResult;
   }
 
-  return Object.values(masterList).flatMap((item) => {
-    if (Array.isArray(item)) {
+  return Object.values(searchResult)
+    .filter((item) => item && typeof item === 'object' && 'bill_id' in item)
+    .flatMap((item: any) => {
+      if (Array.isArray(item)) {
+        return item;
+      }
       return item;
-    }
-    if (typeof item === 'object' && item !== null) {
-      return Object.values(item);
-    }
-    return [];
-  });
+    });
 }
 
 async function fetchBillDetail(billId: number) {
