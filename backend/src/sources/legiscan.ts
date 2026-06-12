@@ -104,9 +104,19 @@ function normalizeLouisianaBill(bill: any) {
   };
 }
 
-function containsKeywords(text: string) {
-  const lower = text.toLowerCase();
-  return legislationKeywords.some((keyword: string) => lower.includes(keyword));
+function isVeteranRelated(bill: any) {
+  const title = (bill.title || '').toLowerCase();
+  const summary = (bill.summary || '').toLowerCase();
+  const textToSearch = `${title} ${summary}`;
+
+  const excludeKeywords = ['appropriation', 'capital outlay', 'elections', 'consumer', 'surveillance', 'commission'];
+  const isExcluded = excludeKeywords.some(keyword => textToSearch.includes(keyword));
+  if (isExcluded) return false;
+
+  const hasVeteranKeyword = legislationKeywords.some((keyword: string) => textToSearch.includes(keyword));
+  const titleHasKeyword = legislationKeywords.some((keyword: string) => title.includes(keyword));
+
+  return hasVeteranKeyword && (titleHasKeyword || textToSearch.match(/veteran|military|service member|national guard/i));
 }
 
 function extractBillEntries(response: any) {
@@ -175,23 +185,27 @@ async function buildBillList(state: string, normalize: (bill: any) => any): Prom
     return searchResults;
   }
 
-  const details = await Promise.allSettled(
-    searchResults.bills.slice(0, 20).map((entry) => {
+  const detailedBills = await Promise.allSettled(
+    searchResults.bills.slice(0, 50).map((entry) => {
       const billId = Number(entry.bill_id || entry.id);
       return billId ? fetchBillDetail(billId) : Promise.resolve(null);
     })
   );
 
-  const bills = details
+  const fulfilledBills = detailedBills
     .filter((result) => result.status === 'fulfilled' && result.value)
-    .map((result) => normalize((result as PromiseFulfilledResult<any>).value));
+    .map((result) => (result as PromiseFulfilledResult<any>).value);
+
+  const veteranRelatedBills = fulfilledBills.filter(isVeteranRelated).slice(0, 20);
+
+  const bills = veteranRelatedBills.map(normalize);
 
   return {
     bills,
     rawResponse: searchResults.rawResponse,
     queryUrl: searchResults.queryUrl,
     totalEntries: searchResults.totalEntries,
-    matchedEntries: bills.length
+    matchedEntries: veteranRelatedBills.length
   };
 }
 
