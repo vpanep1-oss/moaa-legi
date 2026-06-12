@@ -1,10 +1,13 @@
 import axios from 'axios';
 import { legislationKeywords } from '../keywords.js';
 
-const LEGISCAN_API_KEY = process.env.LEGISCAN_API_KEY ?? '';
 const LOUISIANA_STATE = 'LA';
 const FEDERAL_STATE = 'US';
 const API_BASE = 'https://api.legiscan.com/';
+
+function getApiKey() {
+  return process.env.LEGISCAN_API_KEY ?? '';
+}
 
 type FetchResult = {
   bills: any[];
@@ -128,7 +131,8 @@ function extractBillEntries(response: any) {
 
 async function fetchBillDetail(billId: number) {
   try {
-    const response = await axios.get(`${API_BASE}?key=${LEGISCAN_API_KEY}&op=getBill&id=${billId}`);
+    const apiKey = getApiKey();
+    const response = await axios.get(`${API_BASE}?key=${apiKey}&op=getBill&id=${billId}`);
     return response.data.bill ?? null;
   } catch (error) {
     console.warn(`Failed to fetch LegiScan bill ${billId}`, error);
@@ -137,13 +141,14 @@ async function fetchBillDetail(billId: number) {
 }
 
 async function fetchMasterList(state: string): Promise<FetchResult> {
-  if (!LEGISCAN_API_KEY) {
+  const apiKey = getApiKey();
+  if (!apiKey) {
     console.warn('LEGISCAN_API_KEY is not configured');
     return { bills: [], queryUrl: '', totalEntries: 0, matchedEntries: 0 };
   }
 
   const query = legislationKeywords.slice(0, 5).join(' OR ');
-  const queryUrl = `${API_BASE}?key=${LEGISCAN_API_KEY}&op=getSearch&state=${state}&query=${encodeURIComponent(query)}`;
+  const queryUrl = `${API_BASE}?key=${apiKey}&op=getSearch&state=${state}&query=${encodeURIComponent(query)}`;
   const response = await axios.get(queryUrl);
 
   if (response.data.alert) {
