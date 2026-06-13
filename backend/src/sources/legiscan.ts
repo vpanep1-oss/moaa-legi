@@ -69,7 +69,9 @@ function normalizeFederalBill(bill: any) {
     lastActionDate: bill.last_action_date || bill.date || undefined,
     subjects,
     sponsors,
-    billUrl: bill.url || bill.document_url || ''
+    billUrl: bill.url || bill.document_url || '',
+    category: detectCategory(bill),
+    billNumber: bill.bill_number || ''
   };
 }
 
@@ -100,8 +102,36 @@ function normalizeLouisianaBill(bill: any) {
     lastActionDate: bill.last_action_date || bill.date || undefined,
     subjects,
     sponsors,
-    billUrl: bill.url || bill.document_url || ''
+    billUrl: bill.url || bill.document_url || '',
+    category: detectCategory(bill),
+    billNumber: bill.bill_number || ''
   };
+}
+
+function isWithinOneYear(dateStr: string | undefined): boolean {
+  if (!dateStr) return true;
+  const billDate = new Date(dateStr);
+  const today = new Date();
+  const daysDiff = Math.floor((today.getTime() - billDate.getTime()) / (1000 * 60 * 60 * 24));
+  return daysDiff < 365;
+}
+
+function detectCategory(bill: any): string {
+  const title = (bill.title || '').toLowerCase();
+  const summary = (bill.summary || '').toLowerCase();
+  const subjects = (bill.subjects || []).join(' ').toLowerCase();
+  const text = `${title} ${summary} ${subjects}`;
+
+  if (text.match(/education|gi bill|tuition|school|training|apprentice/i)) return 'Education';
+  if (text.match(/housing|home|mortgage|rent|homeless/i)) return 'Housing';
+  if (text.match(/job|employment|hire|civil service|veteran preference/i)) return 'Employment';
+  if (text.match(/surviving spouse|widow|dependent|family|child benefit/i)) return 'Surviving Spouse/Dependents';
+  if (text.match(/caregiver|care provider|respite/i)) return 'Caregivers';
+  if (text.match(/mental health|ptsd|suicide|counseling|wellness/i)) return 'Mental Health & Wellness';
+  if (text.match(/tax|deduction|credit|financial/i)) return 'Tax & Financial';
+  if (text.match(/memorial|recognition|honor|naming|tribute/i)) return 'Memorials & Recognition';
+  if (text.match(/health|medical|disability|va|clinic|hospital|healthcare/i)) return 'Benefits & Compensation';
+  return 'Other';
 }
 
 function isVeteranRelated(bill: any) {
@@ -112,6 +142,8 @@ function isVeteranRelated(bill: any) {
   const excludeKeywords = ['appropriation', 'capital outlay', 'elections', 'consumer', 'surveillance', 'commission'];
   const isExcluded = excludeKeywords.some(keyword => textToSearch.includes(keyword));
   if (isExcluded) return false;
+
+  if (!isWithinOneYear(bill.last_action_date)) return false;
 
   const hasVeteranKeyword = legislationKeywords.some((keyword: string) => textToSearch.includes(keyword));
   const titleHasKeyword = legislationKeywords.some((keyword: string) => title.includes(keyword));
@@ -186,7 +218,7 @@ async function buildBillList(state: string, normalize: (bill: any) => any): Prom
   }
 
   const detailedBills = await Promise.allSettled(
-    searchResults.bills.slice(0, 50).map((entry) => {
+    searchResults.bills.slice(0, 200).map((entry) => {
       const billId = Number(entry.bill_id || entry.id);
       return billId ? fetchBillDetail(billId) : Promise.resolve(null);
     })
@@ -196,16 +228,30 @@ async function buildBillList(state: string, normalize: (bill: any) => any): Prom
     .filter((result) => result.status === 'fulfilled' && result.value)
     .map((result) => (result as PromiseFulfilledResult<any>).value);
 
-  const veteranRelatedBills = fulfilledBills.filter(isVeteranRelated).slice(0, 20);
+  const veteranRelatedBills = fulfilledBills.filter(isVeteranRelated);
 
-  const bills = veteranRelatedBills.map(normalize);
+  const seenBillIds = new Set<string>();
+  const dedupedBills = veteranRelatedBills.filter((bill) => {
+    const billId = bill.bill_id || bill.id;
+    if (seenBillIds.has(billId)) return false;
+    seenBillIds.add(billId);
+    return true;
+  });
+
+  const sortedBills = dedupedBills.sort((a, b) => {
+    const dateA = new Date(a.last_action_date || 0).getTime();
+    const dateB = new Date(b.last_action_date || 0).getTime();
+    return dateB - dateA;
+  });
+
+  const bills = sortedBills.slice(0, 40).map(normalize);
 
   return {
     bills,
     rawResponse: searchResults.rawResponse,
     queryUrl: searchResults.queryUrl,
     totalEntries: searchResults.totalEntries,
-    matchedEntries: veteranRelatedBills.length
+    matchedEntries: dedupedBills.length
   };
 }
 
