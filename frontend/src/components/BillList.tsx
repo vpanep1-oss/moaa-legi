@@ -37,8 +37,8 @@ export default function BillList({ bills }: BillListProps) {
                   <span className={`bill-badge bill-status-${statusCategory}`}>
                     {statusCategory === 'passed' ? '✓ Passed' : statusCategory === 'failed' ? '✗ Failed' : '⧗ Pending'}
                   </span>
-                  {(bill as any).category && (
-                    <span className="bill-badge bill-badge-category">{(bill as any).category}</span>
+                  {bill.category && (
+                    <span className="bill-badge bill-badge-category">{bill.category}</span>
                   )}
                 </div>
               </div>

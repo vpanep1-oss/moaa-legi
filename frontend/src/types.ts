@@ -9,4 +9,6 @@ export interface Bill {
   subjects: string[];
   sponsors: string[];
   billUrl?: string;
+  category?: string;
+  billNumber?: string;
 }
