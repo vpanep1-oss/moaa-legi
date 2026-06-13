@@ -202,6 +202,12 @@ section h3 {
   color: #b45309;
 }
 
+.bill-badge-category {
+  background: rgba(139, 92, 246, 0.12);
+  color: #7c3aed;
+  font-size: 0.75rem;
+}
+
 .bill-item p {
   margin: 8px 0;
   line-height: 1.65;
