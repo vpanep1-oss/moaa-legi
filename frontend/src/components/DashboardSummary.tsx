@@ -1,77 +1,79 @@
 import type { Bill } from '../types';
 
-interface SummaryMetrics {
-  total: number;
-  passed: number;
-  failed: number;
-  pending: number;
-  passRate: number;
+interface DashboardSummaryProps {
+  bills: Bill[];
+  onStatusFilter?: (status: 'passed' | 'failed' | 'pending' | null) => void;
+  selectedStatus?: string | null;
 }
 
 function categorizeStatus(status: string) {
   const normalized = status?.toLowerCase() ?? '';
-  if (/rejected|failed|vetoed|dismissed|withdrawn|died/.test(normalized)) {
+  if (/rejected|failed|vetoed|dismissed|withdrawn|died|nays/.test(normalized)) {
     return 'failed';
   }
-  if (/passed|enacted|approved|agreed|engrossed|effective|signed|became law/.test(normalized)) {
+  if (/passed|enacted|approved|agreed|engrossed|effective|signed|yeas|became law/.test(normalized)) {
     return 'passed';
   }
   return 'pending';
 }
 
-function computeMetrics(bills: Bill[]): SummaryMetrics {
-  const metrics = {
-    total: bills.length,
-    passed: 0,
-    failed: 0,
-    pending: 0,
-    passRate: 0
-  };
+export default function DashboardSummary({ bills, onStatusFilter, selectedStatus }: DashboardSummaryProps) {
+  const passed = bills.filter((b) => categorizeStatus(b.status) === 'passed').length;
+  const failed = bills.filter((b) => categorizeStatus(b.status) === 'failed').length;
+  const pending = bills.filter((b) => categorizeStatus(b.status) === 'pending').length;
+  const total = bills.length;
+  const passRate = total > 0 ? Math.round((passed / total) * 100) : 0;
 
-  bills.forEach((bill) => {
-    const category = categorizeStatus(bill.status);
-    if (category === 'passed') metrics.passed += 1;
-    else if (category === 'failed') metrics.failed += 1;
-    else metrics.pending += 1;
-  });
-
-  metrics.passRate = metrics.total > 0 ? Math.round((metrics.passed / metrics.total) * 100) : 0;
-  return metrics;
-}
-
-interface DashboardSummaryProps {
-  bills: Bill[];
-  title: string;
-  subtitle: string;
-}
-
-export default function DashboardSummary({ bills, title, subtitle }: DashboardSummaryProps) {
-  const { total, passed, failed, pending, passRate } = computeMetrics(bills);
+  const MetricCard = ({ label, count, status, onClick }: { label: string; count: number; status: string; onClick?: () => void }) => (
+    <div
+      className={`metric-card metric-${status} ${selectedStatus === status ? 'selected' : ''}`}
+      onClick={onClick}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+    >
+      <h3>{label}</h3>
+      <p>{count}</p>
+      <div className="progress-bar">
+        <div className={`progress-fill progress-${status}`} style={{ width: `${total > 0 ? (count / total) * 100 : 0}%` }}></div>
+      </div>
+    </div>
+  );
 
   return (
-    <section>
-      <h2>{title}</h2>
-      <p>{subtitle}</p>
-      <div className="summary-grid">
-        <div className="metric-card">
-          <h3>Total bills</h3>
-          <p>{total}</p>
+    <section className="dashboard-summary">
+      <div className="summary-header">
+        <div>
+          <h2>Bill Summary</h2>
+          <p className="summary-subtitle">Click any status to filter</p>
         </div>
-        <div className="metric-card passed">
-          <h3>Passed</h3>
-          <p>{passed}</p>
-        </div>
-        <div className="metric-card failed">
-          <h3>Failed</h3>
-          <p>{failed}</p>
-        </div>
-        <div className="metric-card pending">
-          <h3>Pending</h3>
-          <p>{pending}</p>
-        </div>
-        <div className="metric-card rate">
-          <h3>Pass rate</h3>
+        <div className="total-badge">{total}</div>
+      </div>
+
+      <div className="metrics-grid">
+        <MetricCard
+          label="Passed"
+          count={passed}
+          status="passed"
+          onClick={() => onStatusFilter?.(selectedStatus === 'passed' ? null : 'passed')}
+        />
+        <MetricCard
+          label="Failed"
+          count={failed}
+          status="failed"
+          onClick={() => onStatusFilter?.(selectedStatus === 'failed' ? null : 'failed')}
+        />
+        <MetricCard
+          label="Pending"
+          count={pending}
+          status="pending"
+          onClick={() => onStatusFilter?.(selectedStatus === 'pending' ? null : 'pending')}
+        />
+        <div className="metric-card metric-rate">
+          <h3>Pass Rate</h3>
           <p>{passRate}%</p>
+          <div className="progress-bar">
+            <div className="progress-fill progress-passed" style={{ width: `${passRate}%` }}></div>
+          </div>
         </div>
       </div>
     </section>
