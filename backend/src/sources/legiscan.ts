@@ -191,23 +191,39 @@ async function fetchMasterList(state: string): Promise<FetchResult> {
 
   const query = legislationKeywords.slice(0, 5).join(' OR ');
   const queryUrl = `${API_BASE}?key=${apiKey}&op=getSearch&state=${state}&query=${encodeURIComponent(query)}`;
-  const response = await axios.get(queryUrl);
 
-  if (response.data.alert) {
-    console.error(`LegiScan API error for state ${state}:`, response.data.alert);
-    return { bills: [], queryUrl, totalEntries: 0, matchedEntries: 0 };
+  let allBills: any[] = [];
+  let rawResponse: any = null;
+
+  for (let page = 1; page <= 4; page++) {
+    const pageUrl = `${queryUrl}&page=${page}`;
+    try {
+      const response = await axios.get(pageUrl);
+
+      if (response.data.alert) {
+        console.warn(`LegiScan API alert for state ${state} page ${page}:`, response.data.alert);
+        break;
+      }
+
+      const billEntries = extractBillEntries(response.data);
+      if (billEntries.length === 0) break;
+
+      allBills = allBills.concat(billEntries);
+      if (!rawResponse) rawResponse = response.data;
+
+      console.log(`LegiScan page ${page} for state ${state}: found ${billEntries.length} bills`);
+    } catch (error) {
+      console.warn(`Error fetching page ${page} for state ${state}:`, error);
+      break;
+    }
   }
 
-  const billEntries = extractBillEntries(response.data);
-
-  console.log(`LegiScan search for state ${state}: found ${billEntries.length} bills`);
-
   return {
-    bills: billEntries,
-    rawResponse: response.data,
+    bills: allBills,
+    rawResponse,
     queryUrl,
-    totalEntries: billEntries.length,
-    matchedEntries: billEntries.length
+    totalEntries: allBills.length,
+    matchedEntries: allBills.length
   };
 }
 
@@ -218,7 +234,7 @@ async function buildBillList(state: string, normalize: (bill: any) => any): Prom
   }
 
   const detailedBills = await Promise.allSettled(
-    searchResults.bills.slice(0, 200).map((entry) => {
+    searchResults.bills.map((entry) => {
       const billId = Number(entry.bill_id || entry.id);
       return billId ? fetchBillDetail(billId) : Promise.resolve(null);
     })
