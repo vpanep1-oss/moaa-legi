@@ -52,9 +52,10 @@ function BillCard({ bill }: { bill: Bill }) {
   const source = bill.source?.toLowerCase() || 'federal';
   const moaaTag = getMOAATagCategory(bill.title, bill.summary, bill.subjects);
   const isPriority = isMOAAPriority(bill.title, bill.summary, bill.subjects);
+  const tagColor = TAG_COLORS[moaaTag];
 
   return (
-    <li key={bill.id} className="bill-item" data-source={source}>
+    <li key={bill.id} className="bill-item" data-source={source} style={{ borderLeftColor: tagColor }}>
       <div className="bill-item-header">
         <h3>
           <Link to={`/bills/${bill.id}`}>{bill.title}</Link>

@@ -272,28 +272,22 @@ section h3 {
   border-color: #3b82f6;
 }
 
-.bill-list ul {
+.bill-list ul,
+.bill-category-list {
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
 .bill-item {
+  list-style: none;
   border: 1px solid rgba(15, 23, 42, 0.08);
   border-left: 5px solid #3b82f6;
   border-radius: 12px;
   padding: 20px;
-  margin-bottom: 0;
+  margin: 0;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   background: white;
-}
-
-.bill-item[data-source="federal"] {
-  border-left-color: #2563eb;
-}
-
-.bill-item[data-source="louisiana"] {
-  border-left-color: #10b981;
 }
 
 .bill-item:hover {
