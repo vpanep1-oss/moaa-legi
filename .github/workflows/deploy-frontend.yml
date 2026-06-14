@@ -31,5 +31,10 @@ jobs:
           echo "$DEPLOY_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H 167.172.158.216 >> ~/.ssh/known_hosts
-          scp -i ~/.ssh/deploy_key -r frontend/dist/* $DEPLOY_HOST:/var/www/moaa-legi/
-          ssh -i ~/.ssh/deploy_key $DEPLOY_HOST "chown -R www-data:www-data /var/www/moaa-legi"
+          ssh -i ~/.ssh/deploy_key $DEPLOY_HOST << 'EOF'
+          cd /home/moaa-legi
+          git pull origin main
+          cd frontend
+          npm install
+          npm run build
+          EOF
