@@ -16,35 +16,42 @@ function categorizeStatus(status: string) {
   return 'pending';
 }
 
-const CATEGORY_ORDER = [
-  'Education',
-  'Housing',
-  'Employment',
-  'Surviving Spouse/Dependents',
-  'Caregivers',
-  'Mental Health & Wellness',
-  'Tax & Financial',
-  'Benefits & Compensation',
-  'Memorials & Recognition',
-  'Other',
-];
+function getMOAATagCategory(title: string, summary: string, subjects?: string[]): string {
+  const text = `${title} ${summary} ${subjects?.join(' ') || ''}`.toLowerCase();
 
-const CATEGORY_ICONS: Record<string, string> = {
-  'Education': '📚',
-  'Housing': '🏠',
-  'Employment': '💼',
-  'Surviving Spouse/Dependents': '👨‍👩‍👧',
-  'Caregivers': '🤝',
-  'Mental Health & Wellness': '🧠',
-  'Tax & Financial': '💰',
-  'Benefits & Compensation': '🎖️',
-  'Memorials & Recognition': '🏛️',
-  'Other': '📋',
+  if (/armed forces|military|national security|defense|national defense|homeland security/.test(text)) {
+    return 'Armed Forces & Security';
+  }
+  if (/education|training|student|school|university|college|learning|va training/.test(text)) {
+    return 'Education';
+  }
+  if (/disability|compensation|pension|va benefits|veterans benefits|health|medical|survivor|dependent/.test(text)) {
+    return 'Veterans Benefits';
+  }
+  if (/tax|property|financial|income|deduction|exemption|money/.test(text)) {
+    return 'Tax & Property';
+  }
+
+  return 'Veterans Benefits';
+}
+
+function isMOAAPriority(title: string, summary: string, subjects?: string[]): boolean {
+  const text = `${title} ${summary} ${subjects?.join(' ') || ''}`.toLowerCase();
+  return /disability|compensation|pension|benefits|va benefits|health|medical/.test(text);
+}
+
+const TAG_COLORS: Record<string, string> = {
+  'Armed Forces & Security': '#2563eb',
+  'Education': '#8b5cf6',
+  'Veterans Benefits': '#10b981',
+  'Tax & Property': '#f59e0b',
 };
 
 function BillCard({ bill }: { bill: Bill }) {
   const statusCategory = categorizeStatus(bill.status);
   const source = bill.source?.toLowerCase() || 'federal';
+  const moaaTag = getMOAATagCategory(bill.title, bill.summary, bill.subjects);
+  const isPriority = isMOAAPriority(bill.title, bill.summary, bill.subjects);
 
   return (
     <li key={bill.id} className="bill-item" data-source={source}>
@@ -57,20 +64,15 @@ function BillCard({ bill }: { bill: Bill }) {
           <span className={`bill-badge bill-status-${statusCategory}`}>
             {statusCategory === 'passed' ? '✓ Passed' : statusCategory === 'failed' ? '✗ Failed' : '⧗ Pending'}
           </span>
-          {bill.category && (
-            <span className="bill-badge bill-badge-category">{bill.category}</span>
-          )}
+          <span className="bill-badge bill-badge-moaa-tag" style={{ backgroundColor: `${TAG_COLORS[moaaTag]}20`, color: TAG_COLORS[moaaTag] }}>
+            {moaaTag}
+          </span>
         </div>
       </div>
       <p>{bill.summary}</p>
       <p>
         <strong>Status:</strong> {bill.status}
       </p>
-      {bill.introducedDate && (
-        <p>
-          <strong>Introduced:</strong> {new Date(bill.introducedDate).toLocaleDateString()}
-        </p>
-      )}
       {bill.subjects && bill.subjects.length > 0 && (
         <p>
           <strong>Topics:</strong> {bill.subjects.join(', ')}
@@ -81,13 +83,18 @@ function BillCard({ bill }: { bill: Bill }) {
           <strong>Sponsors:</strong> {bill.sponsors.join(', ')}
         </p>
       )}
-      {bill.billUrl ? (
-        <p>
+      <div className="bill-item-footer">
+        {bill.billUrl ? (
           <a href={bill.billUrl} target="_blank" rel="noreferrer">
             External bill link
           </a>
-        </p>
-      ) : null}
+        ) : null}
+        {isPriority && (
+          <span className="moaa-priority-badge">
+            ★ MOAA PRIORITY
+          </span>
+        )}
+      </div>
     </li>
   );
 }
@@ -97,36 +104,13 @@ export default function BillCategoryList({ bills }: BillCategoryListProps) {
     return <p>No bills found yet. Run the daily ingest or configure API keys.</p>;
   }
 
-  const billsByCategory = bills.reduce(
-    (acc, bill) => {
-      const category = bill.category || 'Other';
-      if (!acc[category]) {
-        acc[category] = [];
-      }
-      acc[category].push(bill);
-      return acc;
-    },
-    {} as Record<string, Bill[]>
-  );
-
-  const sortedCategories = CATEGORY_ORDER.filter((cat) => billsByCategory[cat]);
-
   return (
     <div className="bill-category-list">
-      {sortedCategories.map((category) => (
-        <section key={category} className="category-section">
-          <div className="category-header">
-            <div className="category-icon">{CATEGORY_ICONS[category]}</div>
-            <h3 className="category-title">{category}</h3>
-            <div className="category-count">{billsByCategory[category].length}</div>
-          </div>
-          <div className="category-bills-grid">
-            {billsByCategory[category].map((bill) => (
-              <BillCard key={bill.id} bill={bill} />
-            ))}
-          </div>
-        </section>
-      ))}
+      <div className="category-bills-grid">
+        {bills.map((bill) => (
+          <BillCard key={bill.id} bill={bill} />
+        ))}
+      </div>
     </div>
   );
 }

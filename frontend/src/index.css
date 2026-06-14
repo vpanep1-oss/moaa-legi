@@ -377,6 +377,39 @@ section h3 {
   text-decoration: underline;
 }
 
+.bill-item-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.bill-item-footer a {
+  color: #2563eb;
+  font-weight: 500;
+}
+
+.moaa-priority-badge {
+  background: linear-gradient(135deg, var(--moaa-gold), #c8934d);
+  color: var(--moaa-navy);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.bill-badge-moaa-tag {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 .chart-section {
   background: #f8fbff;
   padding: 22px;
@@ -441,45 +474,6 @@ section h3 {
   color: #111827;
 }
 
-.category-section {
-  margin-bottom: 32px;
-}
-
-.category-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 2px solid var(--moaa-light-blue);
-}
-
-.category-icon {
-  width: 24px;
-  height: 24px;
-  background: var(--moaa-navy);
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.category-title {
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: var(--moaa-navy);
-  margin: 0;
-}
-
-.category-count {
-  margin-left: auto;
-  font-size: 0.9rem;
-  color: #64748b;
-  font-weight: 500;
-}
 
 .category-bills-grid {
   display: grid;
