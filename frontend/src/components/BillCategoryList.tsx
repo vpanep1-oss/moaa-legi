@@ -44,9 +44,10 @@ const CATEGORY_ICONS: Record<string, string> = {
 
 function BillCard({ bill }: { bill: Bill }) {
   const statusCategory = categorizeStatus(bill.status);
+  const source = bill.source?.toLowerCase() || 'federal';
 
   return (
-    <li key={bill.id} className="bill-item">
+    <li key={bill.id} className="bill-item" data-source={source}>
       <div className="bill-item-header">
         <h3>
           <Link to={`/bills/${bill.id}`}>{bill.title}</Link>
