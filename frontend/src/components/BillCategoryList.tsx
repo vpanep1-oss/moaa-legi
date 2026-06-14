@@ -19,17 +19,24 @@ function categorizeStatus(status: string) {
 function getMOAATagCategory(title: string, summary: string, subjects?: string[]): string {
   const text = `${title} ${summary} ${subjects?.join(' ') || ''}`.toLowerCase();
 
-  if (/armed forces|military|national security|defense|national defense|homeland security/.test(text)) {
-    return 'Armed Forces & Security';
+  // Check in order of specificity, most specific first
+  if (/\btax\b.*\b(property|exemption|deduction|financial)\b|\b(property|exemption|deduction|financial)\b.*\btax\b/.test(text)) {
+    return 'Tax & Property';
   }
-  if (/education|training|student|school|university|college|learning|va training/.test(text)) {
+  if (/\beducation\b|\btraining\b.*\bveteran|\bstudent\b|\bschool\b|\buniversity\b|\bcollege\b/.test(text)) {
     return 'Education';
   }
-  if (/disability|compensation|pension|va benefits|veterans benefits|health|medical|survivor|dependent/.test(text)) {
+  if (/\b(disability|compensation|pension)\b/.test(text)) {
     return 'Veterans Benefits';
   }
-  if (/tax|property|financial|income|deduction|exemption|money/.test(text)) {
-    return 'Tax & Property';
+  if (/\bhealth\b|\bmedical\b|\bsurviv|dependent|survivor/.test(text)) {
+    return 'Veterans Benefits';
+  }
+  if (/\barmed forces\b|\bmilitary\b|\bnational security\b|\bdefense\b|\bhomeland security\b|\bcommendation\b|\bdecorat/.test(text)) {
+    return 'Armed Forces & Security';
+  }
+  if (/\bveteran|benefit|va\b/.test(text)) {
+    return 'Veterans Benefits';
   }
 
   return 'Veterans Benefits';
