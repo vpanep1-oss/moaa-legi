@@ -40,6 +40,14 @@ function isMOAAPriority(title: string, summary: string, subjects?: string[]): bo
   return /disability|compensation|pension|benefits|va benefits|health|medical/.test(text);
 }
 
+function shortenTitle(title: string, maxWords: number = 12): string {
+  const words = title.split(/\s+/);
+  if (words.length > maxWords) {
+    return words.slice(0, maxWords).join(' ') + '...';
+  }
+  return title;
+}
+
 const TAG_COLORS: Record<string, string> = {
   'Armed Forces & Security': '#2563eb',
   'Education': '#8b5cf6',
@@ -58,7 +66,7 @@ function BillCard({ bill }: { bill: Bill }) {
     <li key={bill.id} className="bill-item" data-source={source} style={{ borderLeftColor: tagColor }}>
       <div className="bill-item-header">
         <h3>
-          <Link to={`/bills/${bill.id}`}>{bill.title}</Link>
+          <Link to={`/bills/${bill.id}`}>{shortenTitle(bill.title)}</Link>
         </h3>
         <div className="bill-badges">
           <span className={`bill-badge bill-badge-${bill.source}`}>{bill.source}</span>
@@ -81,7 +89,7 @@ function BillCard({ bill }: { bill: Bill }) {
       )}
       {bill.sponsors && bill.sponsors.length > 0 && (
         <p>
-          <strong>Sponsors:</strong> {bill.sponsors.join(', ')}
+          <strong>Sponsors:</strong> {bill.sponsors.slice(0, 3).join(', ')}{bill.sponsors.length > 3 ? '...' : ''}
         </p>
       )}
       <div className="bill-item-footer">
