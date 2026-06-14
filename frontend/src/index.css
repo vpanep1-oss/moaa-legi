@@ -1,8 +1,11 @@
 :root {
   color-scheme: light;
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: #f4f7fb;
+  background: #f5f7fa;
   color: #111827;
+  --moaa-navy: #1a3a5c;
+  --moaa-gold: #d4a574;
+  --moaa-light-blue: #e8f0f8;
 }
 
 * {
@@ -37,32 +40,45 @@ header {
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 24px;
-  padding: 20px 24px;
+  padding: 24px 32px;
   border-radius: 18px;
-  background: white;
-  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08);
+  background: linear-gradient(135deg, var(--moaa-navy) 0%, #0f2a47 100%);
+  box-shadow: 0 20px 50px rgba(26, 58, 92, 0.15);
 }
 
 header h1 {
-  font-size: clamp(1.8rem, 2.2vw, 2.6rem);
+  font-size: clamp(1.6rem, 2vw, 2.4rem);
   margin: 0;
   letter-spacing: -0.03em;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 nav {
   display: flex;
-  gap: 18px;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
 nav a {
-  color: #2563eb;
+  color: rgba(255, 255, 255, 0.8);
   text-decoration: none;
   font-weight: 600;
+  padding: 10px 18px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+nav a.active {
+  background: var(--moaa-gold);
+  color: var(--moaa-navy);
 }
 
 nav a:hover {
-  text-decoration: underline;
+  background: rgba(255, 255, 255, 0.2);
 }
 
 main {
@@ -91,7 +107,15 @@ section h3 {
 }
 
 .dashboard-summary {
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  background: white;
+}
+
+.dashboard-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--moaa-navy);
+  margin: 0 0 8px;
+  letter-spacing: -0.02em;
 }
 
 .summary-header {
@@ -102,9 +126,9 @@ section h3 {
 }
 
 .summary-header h2 {
-  font-size: 1.75rem;
+  font-size: 1.5rem;
   margin: 0 0 8px;
-  color: #0f172a;
+  color: var(--moaa-navy);
 }
 
 .summary-subtitle {
@@ -114,15 +138,23 @@ section h3 {
 }
 
 .total-badge {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  background: linear-gradient(135deg, var(--moaa-navy), #0f2a47);
   color: white;
-  padding: 24px;
-  border-radius: 16px;
-  font-size: 2.5rem;
+  padding: 20px 24px;
+  border-radius: 12px;
+  font-size: 2.2rem;
   font-weight: 700;
-  min-width: 120px;
+  min-width: 110px;
   text-align: center;
-  box-shadow: 0 10px 30px rgba(37, 99, 235, 0.2);
+  box-shadow: 0 8px 24px rgba(26, 58, 92, 0.15);
+}
+
+.badge-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.9;
 }
 
 .metrics-grid {
@@ -133,38 +165,35 @@ section h3 {
 
 .metric-card {
   background: white;
-  border-radius: 16px;
-  padding: 24px;
-  border: 2px solid transparent;
+  border-radius: 14px;
+  padding: 20px;
+  border-left: 5px solid transparent;
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 2px 8px rgba(26, 58, 92, 0.08);
 }
 
 .metric-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.12);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(26, 58, 92, 0.12);
 }
 
 .metric-card.metric-passed {
-  border-color: #10b981;
-  background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
+  border-left-color: #10b981;
 }
 
 .metric-card.metric-failed {
-  border-color: #ef4444;
-  background: linear-gradient(135deg, #fef2f2 0%, #ffffff 100%);
+  border-left-color: #ef4444;
 }
 
 .metric-card.metric-pending {
-  border-color: #f59e0b;
-  background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%);
+  border-left-color: var(--moaa-gold);
 }
 
 .metric-card.metric-rate {
-  border-color: #3b82f6;
-  background: linear-gradient(135deg, #eff6ff 0%, #ffffff 100%);
+  border-left-color: var(--moaa-navy);
 }
 
 .metric-card.selected {
@@ -402,6 +431,52 @@ section h3 {
   color: #111827;
 }
 
+.category-section {
+  margin-bottom: 32px;
+}
+
+.category-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--moaa-light-blue);
+}
+
+.category-icon {
+  width: 24px;
+  height: 24px;
+  background: var(--moaa-navy);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.category-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--moaa-navy);
+  margin: 0;
+}
+
+.category-count {
+  margin-left: auto;
+  font-size: 0.9rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.category-bills-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 16px;
+}
+
 @media (max-width: 760px) {
   .app-container {
     padding: 16px;
@@ -413,5 +488,9 @@ section h3 {
 
   .metric-card {
     min-height: auto;
+  }
+
+  .category-bills-grid {
+    grid-template-columns: 1fr;
   }
 }

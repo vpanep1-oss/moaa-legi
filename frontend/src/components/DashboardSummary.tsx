@@ -4,6 +4,7 @@ interface DashboardSummaryProps {
   bills: Bill[];
   onStatusFilter?: (status: 'passed' | 'failed' | 'pending' | null) => void;
   selectedStatus?: string | null;
+  title?: string;
 }
 
 function categorizeStatus(status: string) {
@@ -17,7 +18,7 @@ function categorizeStatus(status: string) {
   return 'pending';
 }
 
-export default function DashboardSummary({ bills, onStatusFilter, selectedStatus }: DashboardSummaryProps) {
+export default function DashboardSummary({ bills, onStatusFilter, selectedStatus, title }: DashboardSummaryProps) {
   const passed = bills.filter((b) => categorizeStatus(b.status) === 'passed').length;
   const failed = bills.filter((b) => categorizeStatus(b.status) === 'failed').length;
   const pending = bills.filter((b) => categorizeStatus(b.status) === 'pending').length;
@@ -41,12 +42,16 @@ export default function DashboardSummary({ bills, onStatusFilter, selectedStatus
 
   return (
     <section className="dashboard-summary">
+      {title && <h1 className="dashboard-title">{title}</h1>}
       <div className="summary-header">
         <div>
           <h2>Bill Summary</h2>
           <p className="summary-subtitle">Click any status to filter</p>
         </div>
-        <div className="total-badge">{total}</div>
+        <div className="total-badge">
+          <div>{total}</div>
+          <div className="badge-label">Total Tracked</div>
+        </div>
       </div>
 
       <div className="metrics-grid">

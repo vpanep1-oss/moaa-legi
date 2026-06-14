@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import BillList from '../components/BillList';
+import BillCategoryList from '../components/BillCategoryList';
 import DashboardSummary from '../components/DashboardSummary';
 import { getLouisianaBillsUrl } from '../utils/api';
 import type { Bill } from '../types';
@@ -44,6 +44,7 @@ export default function LouisianaDashboard() {
         bills={data}
         onStatusFilter={setSelectedStatus}
         selectedStatus={selectedStatus}
+        title="Louisiana Legislation"
       />
       <section>
         <div className="search-bar">
@@ -69,7 +70,7 @@ export default function LouisianaDashboard() {
           <p>Loading Louisiana bills...</p>
         </section>
       ) : (
-        <BillList bills={filteredBills} />
+        <BillCategoryList bills={filteredBills} />
       )}
     </>
   );
