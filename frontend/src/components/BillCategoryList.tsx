@@ -40,12 +40,12 @@ function isMOAAPriority(title: string, summary: string, subjects?: string[]): bo
   return /disability|compensation|pension|benefits|va benefits|health|medical/.test(text);
 }
 
-function shortenTitle(title: string, maxWords: number = 12): string {
-  const words = title.split(/\s+/);
+function truncateText(text: string, maxWords: number = 15): string {
+  const words = text.split(/\s+/);
   if (words.length > maxWords) {
     return words.slice(0, maxWords).join(' ') + '...';
   }
-  return title;
+  return text;
 }
 
 const TAG_COLORS: Record<string, string> = {
@@ -66,7 +66,7 @@ function BillCard({ bill }: { bill: Bill }) {
     <li key={bill.id} className="bill-item" data-source={source} style={{ borderLeftColor: tagColor }}>
       <div className="bill-item-header">
         <h3>
-          <Link to={`/bills/${bill.id}`}>{shortenTitle(bill.title)}</Link>
+          <Link to={`/bills/${bill.id}`}>{truncateText(bill.summary, 15)}</Link>
         </h3>
         <div className="bill-badges">
           <span className={`bill-badge bill-badge-${bill.source}`}>{bill.source}</span>
@@ -78,7 +78,7 @@ function BillCard({ bill }: { bill: Bill }) {
           </span>
         </div>
       </div>
-      <p>{bill.summary}</p>
+      <p className="bill-official-title"><strong>{bill.title}</strong></p>
       <p>
         <strong>Status:</strong> {bill.status}
       </p>
