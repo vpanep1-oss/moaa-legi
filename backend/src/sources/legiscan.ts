@@ -122,15 +122,39 @@ function detectCategory(bill: any): string {
   const subjects = (bill.subjects || []).join(' ').toLowerCase();
   const text = `${title} ${summary} ${subjects}`;
 
-  if (text.match(/education|gi bill|tuition|school|training|apprentice/i)) return 'Education';
-  if (text.match(/housing|home|mortgage|rent|homeless/i)) return 'Housing';
-  if (text.match(/job|employment|hire|civil service|veteran preference/i)) return 'Employment';
-  if (text.match(/surviving spouse|widow|dependent|family|child benefit/i)) return 'Surviving Spouse/Dependents';
-  if (text.match(/caregiver|care provider|respite/i)) return 'Caregivers';
-  if (text.match(/mental health|ptsd|suicide|counseling|wellness/i)) return 'Mental Health & Wellness';
-  if (text.match(/tax|deduction|credit|financial/i)) return 'Tax & Financial';
-  if (text.match(/memorial|recognition|honor|naming|tribute/i)) return 'Memorials & Recognition';
-  if (text.match(/health|medical|disability|va|clinic|hospital|healthcare/i)) return 'Benefits & Compensation';
+  // Primary mechanism-based categorization (not just "who it affects")
+
+  // Education — schools, staffing, education benefits/eligibility
+  if (text.match(/\b(school|education|tuition|gi bill|training|apprentice|educator|teacher|instructor)\b/i)) {
+    return 'Education';
+  }
+
+  // Employment — hiring, civil service preference, job categories
+  if (text.match(/\b(employment|hire|hiring|civil service|preference point|job|career|position|warden|officer)\b/i)) {
+    return 'Employment';
+  }
+
+  // Tax & Property — tax exemptions, deductions, property transfers, homestead
+  if (text.match(/\b(tax|exemption|deduction|credit|homestead|property transfer|mortgage|home)\b/i)) {
+    return 'Tax & Property';
+  }
+
+  // Veterans Benefits — direct VA/state benefit programs: disability, compensation, pension, health, grants
+  if (text.match(/\b(disability compensation|pension|va benefit|veteran benefit|health record|suicide prevention|grant fund|disability|compensation|va care|medical|clinic|hospital)\b/i)) {
+    return 'Veterans Benefits';
+  }
+
+  // Legal & Justice — courts, guardianship, criminal justice, mentor programs, stolen valor
+  if (text.match(/\b(court|guardianship|guardian|criminal|justice|mentor|stolen valor|legal|probate)\b/i)) {
+    return 'Legal & Justice';
+  }
+
+  // Armed Forces & Security — active duty, National Guard, installations, national security, military recognitions
+  if (text.match(/\b(armed force|military|national guard|active duty|installation|national security|commendation|decoration|medal|honor)\b/i)) {
+    return 'Armed Forces & Security';
+  }
+
+  // Other — commemorative, naming, etc.
   return 'Other';
 }
 
