@@ -22,19 +22,17 @@ jobs:
         env:
           VITE_API_URL: ${{ vars.BACKEND_URL || 'http://localhost:4000' }}
         run: npm run build
-      - name: Deploy to DigitalOcean
+      - name: Deploy dist to DigitalOcean
         env:
           DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
-          DEPLOY_HOST: root@167.172.158.216
         run: |
           mkdir -p ~/.ssh
           echo "$DEPLOY_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H 167.172.158.216 >> ~/.ssh/known_hosts
-          ssh -i ~/.ssh/deploy_key $DEPLOY_HOST << 'EOF'
-          cd /home/moaa-legi
-          git pull origin main
-          cd frontend
-          npm install
-          npm run build
-          EOF
+          ssh-keyscan -H 167.172.158.216 >> ~/.ssh/known_hosts 2>/dev/null
+          # Remove old dist files and copy new ones
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no root@167.172.158.216 << 'ENDSSH'
+          rm -rf /home/moaa-legi/frontend/dist/*
+          ENDSSH
+          # Copy new dist folder
+          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -r frontend/dist/* root@167.172.158.216:/home/moaa-legi/frontend/dist/
