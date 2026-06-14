@@ -40,12 +40,11 @@ function isMOAAPriority(title: string, summary: string, subjects?: string[]): bo
   return /disability|compensation|pension|benefits|va benefits|health|medical/.test(text);
 }
 
-function truncateText(text: string, maxWords: number = 15): string {
-  const words = text.split(/\s+/);
-  if (words.length > maxWords) {
-    return words.slice(0, maxWords).join(' ') + '...';
-  }
-  return text;
+function toTitleCase(text: string): string {
+  return text
+    .split(/\s+/)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
 }
 
 const TAG_COLORS: Record<string, string> = {
@@ -66,7 +65,7 @@ function BillCard({ bill }: { bill: Bill }) {
     <li key={bill.id} className="bill-item" data-source={source} style={{ borderLeftColor: tagColor }}>
       <div className="bill-item-header">
         <h3>
-          <Link to={`/bills/${bill.id}`}>{truncateText(bill.summary, 15)}</Link>
+          <Link to={`/bills/${bill.id}`}>{bill.summary}</Link>
         </h3>
         <div className="bill-badges">
           <span className={`bill-badge bill-badge-${bill.source}`}>{bill.source}</span>
@@ -74,7 +73,7 @@ function BillCard({ bill }: { bill: Bill }) {
             {statusCategory === 'passed' ? '✓ Passed' : statusCategory === 'failed' ? '✗ Failed' : '⧗ Pending'}
           </span>
           <span className="bill-badge bill-badge-moaa-tag" style={{ backgroundColor: `${TAG_COLORS[moaaTag]}20`, color: TAG_COLORS[moaaTag] }}>
-            {moaaTag}
+            {toTitleCase(moaaTag)}
           </span>
         </div>
       </div>
@@ -84,12 +83,12 @@ function BillCard({ bill }: { bill: Bill }) {
       </p>
       {bill.subjects && bill.subjects.length > 0 && (
         <p>
-          <strong>Topics:</strong> {bill.subjects.join(', ')}
+          <strong>Topics:</strong> {bill.subjects.map(s => toTitleCase(s)).join(', ')}
         </p>
       )}
       {bill.sponsors && bill.sponsors.length > 0 && (
         <p>
-          <strong>Sponsors:</strong> {bill.sponsors.slice(0, 3).join(', ')}{bill.sponsors.length > 3 ? '...' : ''}
+          <strong>Sponsors:</strong> {bill.sponsors.slice(0, 3).join(', ')}
         </p>
       )}
       <div className="bill-item-footer">
