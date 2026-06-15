@@ -24,7 +24,7 @@ function getMOAATagCategory(title: string, summary: string, subjects?: string[])
 
   // Veterans Benefits — direct VA/state benefit programs: disability, compensation, pension, health, grants
   // Check FIRST - catches bills about improving/expanding benefits, VA health, claims, etc.
-  if (/\b(disability compensation|va benefit|veteran benefit|health record|suicide prevention|grant fund|va care|va health|va medical|claim|benefit|compensation|pension|disability benefit|expand.*benefit|improve.*benefit)\b/.test(text)) {
+  if (/\b(disability compensation|va benefit|veteran benefit|health record|suicide prevention|grant fund|va care|va health|va medical|claim|benefit|compensation|pension|disability benefit|expand.*benefit|improve.*benefit|presumption|service.?connection|covid|vaccine)\b/.test(text)) {
     return 'Veterans Benefits';
   }
 
@@ -74,6 +74,48 @@ function toTitleCase(text: string): string {
     .join(' ');
 }
 
+function calculateSimilarity(str1: string, str2: string): number {
+  const s1 = str1.toLowerCase().trim();
+  const s2 = str2.toLowerCase().trim();
+
+  if (s1 === s2) return 1;
+
+  // Simple similarity: common words / total words
+  const words1 = new Set(s1.split(/\s+/).filter(w => w.length > 3));
+  const words2 = new Set(s2.split(/\s+/).filter(w => w.length > 3));
+
+  const common = [...words1].filter(w => words2.has(w)).length;
+  const total = Math.max(words1.size, words2.size);
+
+  return total > 0 ? common / total : 0;
+}
+
+function groupSimilarBills(bills: Bill[], threshold: number = 0.7): Array<Bill[]> {
+  const groups: Array<Bill[]> = [];
+  const used = new Set<string>();
+
+  for (const bill of bills) {
+    if (used.has(bill.id)) continue;
+
+    const group = [bill];
+    used.add(bill.id);
+
+    for (const other of bills) {
+      if (used.has(other.id)) continue;
+
+      const similarity = calculateSimilarity(bill.summary, other.summary);
+      if (similarity >= threshold) {
+        group.push(other);
+        used.add(other.id);
+      }
+    }
+
+    groups.push(group);
+  }
+
+  return groups;
+}
+
 const TAG_COLORS: Record<string, string> = {
   'Education': '#8b5cf6',
   'Employment': '#06b6d4',
@@ -84,49 +126,57 @@ const TAG_COLORS: Record<string, string> = {
   'Other': '#6b7280',
 };
 
-function BillCard({ bill }: { bill: Bill }) {
-  const statusCategory = categorizeStatus(bill.status);
-  const source = bill.source?.toLowerCase() || 'federal';
-  const moaaTag = getMOAATagCategory(bill.title, bill.summary, bill.subjects);
-  const isPriority = isMOAAPriority(bill.title, bill.summary, bill.subjects);
+function BillCard({ bills }: { bills: Bill[] }) {
+  const primaryBill = bills[0];
+  const statusCategory = categorizeStatus(primaryBill.status);
+  const source = primaryBill.source?.toLowerCase() || 'federal';
+  const moaaTag = getMOAATagCategory(primaryBill.title, primaryBill.summary, primaryBill.subjects);
+  const isPriority = isMOAAPriority(primaryBill.title, primaryBill.summary, primaryBill.subjects);
   const tagColor = TAG_COLORS[moaaTag];
 
   return (
-    <li key={bill.id} className="bill-item" data-source={source} style={{ borderLeftColor: tagColor }}>
+    <li key={primaryBill.id} className="bill-item" data-source={source} style={{ borderLeftColor: tagColor }}>
       <div className="bill-item-header">
         <h3>
-          <Link to={`/bills/${bill.id}`}>{bill.summary}</Link>
+          <Link to={`/bills/${primaryBill.id}`}>{primaryBill.summary}</Link>
         </h3>
         <div className="bill-badges">
-          <span className={`bill-badge bill-badge-${bill.source}`}>{bill.source}</span>
+          <span className={`bill-badge bill-badge-${primaryBill.source}`}>{primaryBill.source}</span>
           <span className={`bill-badge bill-status-${statusCategory}`}>
             {statusCategory === 'passed' ? '✓ Passed' : statusCategory === 'failed' ? '✗ Failed' : '⧗ Pending'}
           </span>
           <span className="bill-badge bill-badge-moaa-tag" style={{ backgroundColor: `${TAG_COLORS[moaaTag]}20`, color: TAG_COLORS[moaaTag] }}>
             {toTitleCase(moaaTag)}
           </span>
+          {bills.length > 1 && (
+            <span className="bill-badge" style={{ backgroundColor: '#f3f4f6', color: '#4b5563' }}>
+              +{bills.length - 1} similar
+            </span>
+          )}
         </div>
       </div>
-      <p className="bill-official-title"><strong>{bill.title}</strong></p>
+      <p className="bill-official-title"><strong>{primaryBill.title}</strong></p>
       <p>
-        <strong>Status:</strong> {bill.status}
+        <strong>Status:</strong> {primaryBill.status}
       </p>
-      {bill.subjects && bill.subjects.length > 0 && (
+      {primaryBill.subjects && primaryBill.subjects.length > 0 && (
         <p>
-          <strong>Topics:</strong> {bill.subjects.map(s => toTitleCase(s)).join(', ')}
+          <strong>Topics:</strong> {primaryBill.subjects.map(s => toTitleCase(s)).join(', ')}
         </p>
       )}
-      {bill.sponsors && bill.sponsors.length > 0 && (
+      {primaryBill.sponsors && primaryBill.sponsors.length > 0 && (
         <p>
-          <strong>Sponsors:</strong> {bill.sponsors.slice(0, 3).join(', ')}
+          <strong>Sponsors:</strong> {primaryBill.sponsors.slice(0, 3).join(', ')}
         </p>
       )}
       <div className="bill-item-footer">
-        {bill.billUrl ? (
-          <a href={bill.billUrl} target="_blank" rel="noreferrer">
-            External bill link
-          </a>
-        ) : null}
+        <div className="bill-links">
+          {bills.map(bill => (
+            <a key={bill.id} href={bill.billUrl} target="_blank" rel="noreferrer">
+              {bill.billNumber || `${bill.source.toUpperCase()} Bill`}
+            </a>
+          ))}
+        </div>
         {isPriority && (
           <span className="moaa-priority-badge">
             ★ MOAA PRIORITY
@@ -142,11 +192,13 @@ export default function BillCategoryList({ bills }: BillCategoryListProps) {
     return <p>No bills found yet. Run the daily ingest or configure API keys.</p>;
   }
 
+  const billGroups = groupSimilarBills(bills, 0.75);
+
   return (
     <div className="bill-category-list">
       <div className="category-bills-grid">
-        {bills.map((bill) => (
-          <BillCard key={bill.id} bill={bill} />
+        {billGroups.map((group) => (
+          <BillCard key={group[0].id} bills={group} />
         ))}
       </div>
     </div>
