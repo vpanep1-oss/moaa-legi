@@ -90,21 +90,73 @@ function calculateSimilarity(str1: string, str2: string): number {
   return total > 0 ? common / total : 0;
 }
 
+function isCommemorativeResolution(bill: Bill): boolean {
+  const billNum = bill.billNumber?.toUpperCase() || '';
+  const text = `${bill.title} ${bill.summary}`.toLowerCase();
+
+  // Exclude HR/SR that are just designating days or commemorating people
+  if (/(HR|SR)\d+/.test(billNum)) {
+    if (text.match(/\b(designat|honor|commend|recogn|memorial|tribute|apprecation|day|week)\b/i)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function extractBillNumber(billNumber: string): string {
+  // Extract just the number (e.g., "123" from "HB123" or "SB123")
+  const match = billNumber?.match(/\d+/);
+  return match ? match[0] : '';
+}
+
 function groupSimilarBills(bills: Bill[], threshold: number = 0.7): Array<Bill[]> {
+  // Filter out commemorative resolutions first
+  const substantiveBills = bills.filter(bill => !isCommemorativeResolution(bill));
+
+  // Sort by last_action_date (newest first) to prioritize recent bills
+  const sortedBills = [...substantiveBills].sort((a, b) => {
+    const dateA = new Date(a.lastActionDate || 0).getTime();
+    const dateB = new Date(b.lastActionDate || 0).getTime();
+    return dateB - dateA;
+  });
+
   const groups: Array<Bill[]> = [];
   const used = new Set<string>();
+  const sixMonthsAgo = new Date();
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
-  for (const bill of bills) {
+  for (const bill of sortedBills) {
     if (used.has(bill.id)) continue;
 
     const group = [bill];
     used.add(bill.id);
+    const billNum = extractBillNumber(bill.billNumber || '');
 
-    for (const other of bills) {
+    for (const other of sortedBills) {
       if (used.has(other.id)) continue;
+      const otherNum = extractBillNumber(other.billNumber || '');
 
+      // Match 1: Same bill number (HB123 and SB123 are companions)
+      if (billNum && billNum === otherNum && billNum.length > 0) {
+        group.push(other);
+        used.add(other.id);
+        continue;
+      }
+
+      // Match 2: High summary similarity
       const similarity = calculateSimilarity(bill.summary, other.summary);
       if (similarity >= threshold) {
+        // Filter stale: if other bill is >6 months older and primary is newer, skip it
+        const otherDate = new Date(other.lastActionDate || 0);
+        if (otherDate < sixMonthsAgo && group[0].lastActionDate) {
+          const primaryDate = new Date(group[0].lastActionDate);
+          if (primaryDate > sixMonthsAgo) {
+            // Skip stale bill when we have a newer one
+            continue;
+          }
+        }
+
         group.push(other);
         used.add(other.id);
       }
@@ -192,7 +244,7 @@ export default function BillCategoryList({ bills }: BillCategoryListProps) {
     return <p>No bills found yet. Run the daily ingest or configure API keys.</p>;
   }
 
-  const billGroups = groupSimilarBills(bills, 0.75);
+  const billGroups = groupSimilarBills(bills, 0.65);
 
   return (
     <div className="bill-category-list">
