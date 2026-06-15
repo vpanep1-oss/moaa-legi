@@ -127,7 +127,7 @@ function detectCategory(bill: any): string {
 
   // Veterans Benefits — direct VA/state benefit programs: disability, compensation, pension, health, grants
   // Check FIRST - catches bills about improving/expanding benefits, VA health, claims, etc.
-  if (text.match(/\b(disability compensation|va benefit|veteran benefit|health record|suicide prevention|grant fund|va care|va health|va medical|claim|benefit|compensation|pension|disability benefit|expand.*benefit|improve.*benefit|presumption|service.?connection|covid|vaccine)\b/i)) {
+  if (text.match(/\b(disability compensation|va benefit|veteran benefit|health record|suicide prevention|grant fund|va care|va health|va medical|claim|benefit|compensation|pension|disability benefit|expand.*benefit|improve.*benefit|presumption|service.?connection|covid|vaccine|military sexual trauma|sexual trauma)\b/i)) {
     return 'Veterans Benefits';
   }
 

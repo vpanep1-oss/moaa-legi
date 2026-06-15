@@ -24,7 +24,7 @@ function getMOAATagCategory(title: string, summary: string, subjects?: string[])
 
   // Veterans Benefits — direct VA/state benefit programs: disability, compensation, pension, health, grants
   // Check FIRST - catches bills about improving/expanding benefits, VA health, claims, etc.
-  if (/\b(disability compensation|va benefit|veteran benefit|health record|suicide prevention|grant fund|va care|va health|va medical|claim|benefit|compensation|pension|disability benefit|expand.*benefit|improve.*benefit|presumption|service.?connection|covid|vaccine)\b/.test(text)) {
+  if (/\b(disability compensation|va benefit|veteran benefit|health record|suicide prevention|grant fund|va care|va health|va medical|claim|benefit|compensation|pension|disability benefit|expand.*benefit|improve.*benefit|presumption|service.?connection|covid|vaccine|military sexual trauma|sexual trauma)\b/.test(text)) {
     return 'Veterans Benefits';
   }
 
@@ -244,7 +244,7 @@ export default function BillCategoryList({ bills }: BillCategoryListProps) {
     return <p>No bills found yet. Run the daily ingest or configure API keys.</p>;
   }
 
-  const billGroups = groupSimilarBills(bills, 0.65);
+  const billGroups = groupSimilarBills(bills, 0.6);
 
   return (
     <div className="bill-category-list">
