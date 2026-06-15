@@ -20,25 +20,27 @@ function getMOAATagCategory(title: string, summary: string, subjects?: string[])
   const text = `${title} ${summary} ${subjects?.join(' ') || ''}`.toLowerCase();
 
   // Primary mechanism-based categorization (what government function does it change?)
+  // Check most specific patterns FIRST before general ones
 
-  // Education — schools, staffing, education benefits/eligibility
-  if (/\b(school|education|tuition|gi bill|training|apprentice|educator|teacher|instructor)\b/.test(text)) {
+  // Veterans Benefits — direct VA/state benefit programs: disability, compensation, pension, health, grants
+  // Check FIRST - catches bills about improving/expanding benefits, VA health, claims, etc.
+  if (/\b(disability compensation|va benefit|veteran benefit|health record|suicide prevention|grant fund|va care|va health|va medical|claim|benefit|compensation|pension|disability benefit|expand.*benefit|improve.*benefit)\b/.test(text)) {
+    return 'Veterans Benefits';
+  }
+
+  // Education — schools, staffing, education benefits (NOT VA training programs)
+  if (/\b(school|tuition|gi bill|apprentice|educator|teacher|instructor|student loan|education benefit)\b/.test(text) && !/va\s|veteran.*health/.test(text)) {
     return 'Education';
   }
 
   // Employment — hiring, civil service preference, job categories
-  if (/\b(employment|hire|hiring|civil service|preference point|job|career|position|warden|officer)\b/.test(text)) {
+  if (/\b(employment|hire|hiring|civil service|preference point|job|career|position|warden)\b/.test(text)) {
     return 'Employment';
   }
 
-  // Tax & Property — tax exemptions, deductions, property transfers, homestead
-  if (/\b(tax|exemption|deduction|credit|homestead|property transfer|mortgage|home)\b/.test(text)) {
+  // Tax & Property — tax exemptions, deductions, property transfers, homestead (NOT general "home" references)
+  if (/\b(tax|exemption|deduction|credit|homestead|property transfer|mortgage)\b/.test(text) && !/va\s|veteran.*benefit/.test(text)) {
     return 'Tax & Property';
-  }
-
-  // Veterans Benefits — direct VA/state benefit programs: disability, compensation, pension, health, grants
-  if (/\b(disability compensation|pension|va benefit|veteran benefit|health record|suicide prevention|grant fund|disability|compensation|va care|medical|clinic|hospital)\b/.test(text)) {
-    return 'Veterans Benefits';
   }
 
   // Legal & Justice — courts, guardianship, criminal justice, mentor programs, stolen valor
@@ -46,9 +48,14 @@ function getMOAATagCategory(title: string, summary: string, subjects?: string[])
     return 'Legal & Justice';
   }
 
-  // Armed Forces & Security — active duty, National Guard, installations, national security, military recognitions
-  if (/\b(armed force|military|national guard|active duty|installation|national security|commendation|decoration|medal|honor)\b/.test(text)) {
+  // Armed Forces & Security — active duty, National Guard, installations, national security, military recognitions, memorials
+  if (/\b(active duty|national guard|installation|national security|commendation|decoration|medal|honor|recogni|memorial|military service)\b/.test(text)) {
     return 'Armed Forces & Security';
+  }
+
+  // Default to Veterans Benefits for anything else veteran-related
+  if (/\bveteran|va\b/.test(text)) {
+    return 'Veterans Benefits';
   }
 
   // Other — commemorative, naming, etc.

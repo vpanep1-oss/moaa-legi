@@ -123,25 +123,27 @@ function detectCategory(bill: any): string {
   const text = `${title} ${summary} ${subjects}`;
 
   // Primary mechanism-based categorization (not just "who it affects")
+  // Check most specific patterns FIRST before general ones
 
-  // Education — schools, staffing, education benefits/eligibility
-  if (text.match(/\b(school|education|tuition|gi bill|training|apprentice|educator|teacher|instructor)\b/i)) {
+  // Veterans Benefits — direct VA/state benefit programs: disability, compensation, pension, health, grants
+  // Check FIRST - catches bills about improving/expanding benefits, VA health, claims, etc.
+  if (text.match(/\b(disability compensation|va benefit|veteran benefit|health record|suicide prevention|grant fund|va care|va health|va medical|claim|benefit|compensation|pension|disability benefit|expand.*benefit|improve.*benefit)\b/i)) {
+    return 'Veterans Benefits';
+  }
+
+  // Education — schools, staffing, education benefits (NOT VA training programs)
+  if (text.match(/\b(school|tuition|gi bill|apprentice|educator|teacher|instructor|student loan|education benefit)\b/i) && !text.match(/va\s|veteran.*health/i)) {
     return 'Education';
   }
 
   // Employment — hiring, civil service preference, job categories
-  if (text.match(/\b(employment|hire|hiring|civil service|preference point|job|career|position|warden|officer)\b/i)) {
+  if (text.match(/\b(employment|hire|hiring|civil service|preference point|job|career|position|warden)\b/i)) {
     return 'Employment';
   }
 
-  // Tax & Property — tax exemptions, deductions, property transfers, homestead
-  if (text.match(/\b(tax|exemption|deduction|credit|homestead|property transfer|mortgage|home)\b/i)) {
+  // Tax & Property — tax exemptions, deductions, property transfers, homestead (NOT general "home" references)
+  if (text.match(/\b(tax|exemption|deduction|credit|homestead|property transfer|mortgage)\b/i) && !text.match(/va\s|veteran.*benefit/i)) {
     return 'Tax & Property';
-  }
-
-  // Veterans Benefits — direct VA/state benefit programs: disability, compensation, pension, health, grants
-  if (text.match(/\b(disability compensation|pension|va benefit|veteran benefit|health record|suicide prevention|grant fund|disability|compensation|va care|medical|clinic|hospital)\b/i)) {
-    return 'Veterans Benefits';
   }
 
   // Legal & Justice — courts, guardianship, criminal justice, mentor programs, stolen valor
@@ -149,9 +151,14 @@ function detectCategory(bill: any): string {
     return 'Legal & Justice';
   }
 
-  // Armed Forces & Security — active duty, National Guard, installations, national security, military recognitions
-  if (text.match(/\b(armed force|military|national guard|active duty|installation|national security|commendation|decoration|medal|honor)\b/i)) {
+  // Armed Forces & Security — active duty, National Guard, installations, national security, military recognitions, memorials
+  if (text.match(/\b(active duty|national guard|installation|national security|commendation|decoration|medal|honor|recogni|memorial|military service)\b/i)) {
     return 'Armed Forces & Security';
+  }
+
+  // Default to Veterans Benefits for anything else veteran-related
+  if (text.match(/\bveteran|va\b/i)) {
+    return 'Veterans Benefits';
   }
 
   // Other — commemorative, naming, etc.
