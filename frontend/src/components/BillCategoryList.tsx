@@ -80,6 +80,16 @@ function calculateSimilarity(str1: string, str2: string): number {
 
   if (s1 === s2) return 1;
 
+  // Check for topic-based matches (e.g., title 38, military sexual trauma)
+  const hasTitle38Both = /title\s*38|38\s*u\.?s\.?c/.test(s1) && /title\s*38|38\s*u\.?s\.?c/.test(s2);
+  const hasMSTBoth = /military sexual trauma|sexual trauma/.test(s1) && /military sexual trauma|sexual trauma/.test(s2);
+  const hasVeteransBenefitsBoth = /veteran.*benefit|benefit.*veteran|va.*benefit|disability.*compensation/.test(s1) &&
+                                   /veteran.*benefit|benefit.*veteran|va.*benefit|disability.*compensation/.test(s2);
+
+  if ((hasTitle38Both && hasMSTBoth) || (hasTitle38Both && hasVeteransBenefitsBoth)) {
+    return 0.75;
+  }
+
   // Simple similarity: common words / total words
   const words1 = new Set(s1.split(/\s+/).filter(w => w.length > 3));
   const words2 = new Set(s2.split(/\s+/).filter(w => w.length > 3));
