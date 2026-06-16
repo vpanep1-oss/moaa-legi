@@ -24,7 +24,7 @@ function getMOAATagCategory(title: string, summary: string, subjects?: string[])
 
   // Veterans Benefits — direct VA/state benefit programs: disability, compensation, pension, health, grants
   // Check FIRST - catches bills about improving/expanding benefits, VA health, claims, etc.
-  if (/title\s*38|disabilit|va benefit|veteran benefit|health record|suicide prevention|grant fund|va care|va health|va medical|claim|benefit|compensation|pension|expand.*benefit|improve.*benefit|presumption|service.?connection|covid|vaccine|military sexual trauma|sexual trauma|reproductive/i.test(text)) {
+  if (/title\s*38|disabilit|va benefit|veteran benefit|health record|suicide prevention|grant fund|va care|va health|va medical|claim|benefit|compensation|pension|expand.*benefit|improve.*benefit|improve.*care|presumption|service.?connection|covid|vaccine|military sexual trauma|sexual trauma|reproductive/i.test(text)) {
     return 'Veterans Benefits';
   }
 
@@ -106,7 +106,7 @@ function isCommemorativeResolution(bill: Bill): boolean {
 
   // Exclude HR/SR that are just designating days or commemorating people
   if (/(HR|SR)\d+/.test(billNum)) {
-    if (text.match(/\b(designat|honor|commend|recogn|memorial|tribute|apprecation|day|week)\b/i)) {
+    if (text.match(/(designat|honor|commend|recogn|memorial|tribute|apprec|day|week|congratulat)/i)) {
       return true;
     }
   }
