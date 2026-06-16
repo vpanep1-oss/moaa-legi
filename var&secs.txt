@@ -1,0 +1,5 @@
+BACKEND_URL              = https://moaa-legi.onrender.com
+RENDER_DEPLOY_URL        = https://api.render.com/deploy/srv-d8e1vunavr4c73892l20?key=jc3niqy4-Po
+BACKEND_INGEST_URL       = https://moaa-legi.onrender.com
+INGEST_SECRET            = 3f7e5a28-9d1b-4c6f-a780-2e4d9c11bfa7
+LEGISCAN_API_KEY         = a3c518677d97b97a35679c6df451ca9d
