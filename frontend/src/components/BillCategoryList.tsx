@@ -104,9 +104,9 @@ function isCommemorativeResolution(bill: Bill): boolean {
   const billNum = bill.billNumber?.toUpperCase() || '';
   const text = `${bill.title} ${bill.summary}`.toLowerCase();
 
-  // Exclude HR/SR that are just designating days or commemorating people
-  if (/(HR|SR)\d+/.test(billNum)) {
-    if (text.match(/(designat|honor|commend|recogn|memorial|tribute|apprec|day|week|congratulat)/i)) {
+  // Exclude resolutions (HR/SR/HCR/SCR) that are ceremonial/commemorative
+  if (/(HR|SR|HCR|SCR)\d+/.test(billNum)) {
+    if (text.match(/(designat|honor|commend|recogn|memorial|tribute|apprec|day|week|congratulat|expressing|resolving|concurrent resolution|house resolution|senate resolution)/i)) {
       return true;
     }
   }
