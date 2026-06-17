@@ -28,6 +28,11 @@ function getMOAATagCategory(title: string, summary: string, subjects?: string[])
     return 'Veterans Benefits';
   }
 
+  // Legal & Justice — courts, guardianship, criminal justice, mentor programs, stolen valor (check before Armed Forces to catch crime bills)
+  if (/\b(court|guardianship|guardian|criminal|justice|mentor|stolen valor|legal|probate)\b/.test(text)) {
+    return 'Legal & Justice';
+  }
+
   // Education — schools, staffing, education benefits (NOT VA training programs)
   if (/\b(school|tuition|gi bill|apprentice|educator|teacher|instructor|student loan|education benefit)\b/.test(text) && !/va\s|veteran.*health/.test(text)) {
     return 'Education';
@@ -43,13 +48,8 @@ function getMOAATagCategory(title: string, summary: string, subjects?: string[])
     return 'Tax & Property';
   }
 
-  // Legal & Justice — courts, guardianship, criminal justice, mentor programs, stolen valor
-  if (/\b(court|guardianship|guardian|criminal|justice|mentor|stolen valor|legal|probate)\b/.test(text)) {
-    return 'Legal & Justice';
-  }
-
   // Armed Forces & Security — active duty, National Guard, installations, national security, military recognitions, memorials
-  if (/\b(active duty|national guard|installation|national security|commendation|decoration|medal|honor|recogni|memorial|military service)\b/.test(text)) {
+  if (/(active duty|national guard|installation|national security|commendation|decoration|medal|honor|recogni|memorial|military service|military base|foreign adversaries)/i.test(text)) {
     return 'Armed Forces & Security';
   }
 
@@ -72,6 +72,10 @@ function toTitleCase(text: string): string {
     .split(/\s+/)
     .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(' ');
+}
+
+function stripParentheses(text: string): string {
+  return text.replace(/\s*\([^)]*\)\s*/g, ' ').trim();
 }
 
 function calculateSimilarity(str1: string, str2: string): number {
@@ -106,7 +110,7 @@ function isCommemorativeResolution(bill: Bill): boolean {
 
   // Exclude resolutions (HR/SR/HCR/SCR) that are ceremonial/commemorative
   if (/(HR|SR|HCR|SCR)\d+/.test(billNum)) {
-    if (text.match(/(designat|honor|commend|recogn|memorial|tribute|apprec|day|week|congratulat|expressing|resolving|concurrent resolution|house resolution|senate resolution)/i)) {
+    if (text.match(/(designat|honor|commend|recogn|memorial|tribute|apprec|day|week|congratulat|expressing|resolving|concurrent resolution|house resolution|senate resolution|condolen)/i)) {
       return true;
     }
   }
@@ -217,7 +221,7 @@ function BillCard({ bills }: { bills: Bill[] }) {
           )}
         </div>
       </div>
-      <p className="bill-official-title"><strong>{primaryBill.title}</strong></p>
+      <p className="bill-official-title"><strong>{stripParentheses(primaryBill.title)}</strong></p>
       <p>
         <strong>Status:</strong> {primaryBill.status}
       </p>

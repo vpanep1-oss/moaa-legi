@@ -131,6 +131,11 @@ function detectCategory(bill: any): string {
     return 'Veterans Benefits';
   }
 
+  // Legal & Justice — courts, guardianship, criminal justice, mentor programs, stolen valor (check before Armed Forces to catch crime bills)
+  if (text.match(/\b(court|guardianship|guardian|criminal|justice|mentor|stolen valor|legal|probate)\b/i)) {
+    return 'Legal & Justice';
+  }
+
   // Education — schools, staffing, education benefits (NOT VA training programs)
   if (text.match(/\b(school|tuition|gi bill|apprentice|educator|teacher|instructor|student loan|education benefit)\b/i) && !text.match(/va\s|veteran.*health/i)) {
     return 'Education';
@@ -146,13 +151,8 @@ function detectCategory(bill: any): string {
     return 'Tax & Property';
   }
 
-  // Legal & Justice — courts, guardianship, criminal justice, mentor programs, stolen valor
-  if (text.match(/\b(court|guardianship|guardian|criminal|justice|mentor|stolen valor|legal|probate)\b/i)) {
-    return 'Legal & Justice';
-  }
-
   // Armed Forces & Security — active duty, National Guard, installations, national security, military recognitions, memorials
-  if (text.match(/\b(active duty|national guard|installation|national security|commendation|decoration|medal|honor|recogni|memorial|military service)\b/i)) {
+  if (text.match(/(active duty|national guard|installation|national security|commendation|decoration|medal|honor|recogni|memorial|military service|military base|foreign adversaries)/i)) {
     return 'Armed Forces & Security';
   }
 
