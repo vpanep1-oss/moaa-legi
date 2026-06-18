@@ -172,7 +172,7 @@ function isVeteranRelated(bill: any) {
   const summary = (bill.summary || '').toLowerCase();
   const textToSearch = `${title} ${summary}`;
 
-  const excludeKeywords = ['appropriation', 'capital outlay', 'elections', 'consumer', 'surveillance', 'commission'];
+  const excludeKeywords = ['appropriation', 'capital outlay', 'elections', 'consumer', 'surveillance', 'commission', 'omnibus', 'commonsense', 'common sense', 'to advance', 'cybersecurity', 'taxation'];
   const isExcluded = excludeKeywords.some(keyword => textToSearch.includes(keyword));
   if (isExcluded) return false;
 
