@@ -75,7 +75,11 @@ function toTitleCase(text: string): string {
 }
 
 function stripParentheses(text: string): string {
-  return text.replace(/\s*\([^)]*\)\s*/g, ' ').trim();
+  return text
+    .replace(/\s*\([^)]*\)\s*/g, ' ')
+    .replace(/[()]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 function calculateSimilarity(str1: string, str2: string): number {
