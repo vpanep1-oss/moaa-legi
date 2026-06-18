@@ -93,8 +93,10 @@ function calculateSimilarity(str1: string, str2: string): number {
   const hasMSTBoth = /military sexual trauma|sexual trauma/.test(s1) && /military sexual trauma|sexual trauma/.test(s2);
   const hasVeteransBenefitsBoth = /veteran.*benefit|benefit.*veteran|va.*benefit|disability.*compensation/.test(s1) &&
                                    /veteran.*benefit|benefit.*veteran|va.*benefit|disability.*compensation/.test(s2);
+  const hasMilitaryPropertyBoth = /(military base|military installation)/.test(s1) && /(military base|military installation)/.test(s2) &&
+                                   /(property|expropriate|expropriation)/.test(s1) && /(property|expropriate|expropriation)/.test(s2);
 
-  if ((hasTitle38Both && hasMSTBoth) || (hasTitle38Both && hasVeteransBenefitsBoth)) {
+  if ((hasTitle38Both && hasMSTBoth) || (hasTitle38Both && hasVeteransBenefitsBoth) || hasMilitaryPropertyBoth) {
     return 0.75;
   }
 
