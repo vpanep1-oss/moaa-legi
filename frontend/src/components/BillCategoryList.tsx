@@ -29,18 +29,18 @@ function getMOAATagCategory(title: string, summary: string, subjects?: string[])
   }
 
   // Legal & Justice — courts, guardianship, criminal justice, mentor programs, stolen valor (check before Armed Forces to catch crime bills)
-  if (/(court|guardianship|guardian|crime|justice|mentor|stolen valor|legal|probate)/i.test(text)) {
+  if (/(court|guardianship|crime|justice|mentor|stolen valor|legal|probate)/i.test(text)) {
     return 'Legal & Justice';
+  }
+
+  // Employment — hiring, civil service preference, job categories, work positions (check before Education to catch school guardian jobs)
+  if (/(employment|hire|hiring|civil service|preference point|job|career|position|warden|guardian|school)/i.test(text) && /(employment|hire|hiring|job|career|position|work|guardian)/.test(text)) {
+    return 'Employment';
   }
 
   // Education — schools, staffing, education benefits (NOT VA training programs)
   if (/\b(school|tuition|gi bill|apprentice|educator|teacher|instructor|student loan|education benefit)\b/.test(text) && !/va\s|veteran.*health/.test(text)) {
     return 'Education';
-  }
-
-  // Employment — hiring, civil service preference, job categories
-  if (/\b(employment|hire|hiring|civil service|preference point|job|career|position|warden)\b/.test(text)) {
-    return 'Employment';
   }
 
   // Tax & Property — tax exemptions, deductions, property transfers, homestead (NOT general "home" references)
