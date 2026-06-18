@@ -128,7 +128,7 @@ function detectCategory(bill: any): string {
 
   // Veterans Benefits — direct VA/state benefit programs: disability, compensation, pension, health, grants
   // Check FIRST - catches bills about improving/expanding benefits, VA health, claims, etc.
-  if (text.match(/title\s*38|disabilit|va benefit|veteran benefit|health record|suicide prevention|grant fund|va care|va health|va medical|claim|benefit|compensation|pension|expand.*benefit|improve.*benefit|improve.*care|presumption|service.?connection|covid|vaccine|military sexual trauma|sexual trauma|reproductive/i)) {
+  if (text.match(/title\s*38|disabilit|combat.*related|va benefit|veteran benefit|health record|suicide prevention|grant fund|va care|va health|va medical|claim|benefit|compensation|pension|expand.*benefit|improve.*benefit|improve.*care|presumption|service.?connection|covid|vaccine|military sexual trauma|sexual trauma|reproductive/i)) {
     return 'Veterans Benefits';
   }
 
@@ -180,7 +180,7 @@ function isVeteranRelated(bill: any) {
   const hasVeteranKeyword = legislationKeywords.some((keyword: string) => textToSearch.includes(keyword));
   const titleHasKeyword = legislationKeywords.some((keyword: string) => title.includes(keyword));
 
-  return hasVeteranKeyword && (titleHasKeyword || textToSearch.match(/veteran|military|service member|national guard/i));
+  return hasVeteranKeyword && (titleHasKeyword || textToSearch.match(/veteran|military|service member|national guard|combat.*related/i));
 }
 
 function extractBillEntries(response: any) {
