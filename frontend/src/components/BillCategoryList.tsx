@@ -84,6 +84,14 @@ function stripParentheses(text: string): string {
     .trim();
 }
 
+function cleanStatus(status: string): string {
+  return status
+    .replace(/<[^>]*>/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .substring(0, 120) + (status.length > 120 ? '...' : '');
+}
+
 function calculateSimilarity(str1: string, str2: string): number {
   const s1 = str1.toLowerCase().trim();
   const s2 = str2.toLowerCase().trim();
@@ -233,7 +241,7 @@ function BillCard({ bills }: { bills: Bill[] }) {
       </div>
       <p className="bill-official-title"><strong>{stripParentheses(primaryBill.title)}</strong></p>
       <p>
-        <strong>Status:</strong> {primaryBill.status}
+        <strong>Status:</strong> {cleanStatus(primaryBill.status)}
       </p>
       {primaryBill.subjects && primaryBill.subjects.length > 0 && (
         <p>
