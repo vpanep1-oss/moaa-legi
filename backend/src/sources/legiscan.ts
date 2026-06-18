@@ -22,6 +22,14 @@ function findMeaningfulAction(history: any[], completed: number) {
     return 'Introduced';
   }
 
+  // Check failed FIRST to catch "rejected" before other patterns
+  for (let i = history.length - 1; i >= 0; i--) {
+    const action = history[i].action || '';
+    if (/failed|rejected|vetoed|dismissed|withdrawn|died/i.test(action)) {
+      return action;
+    }
+  }
+
   if (completed === 1) {
     for (let i = history.length - 1; i >= 0; i--) {
       const action = history[i].action || '';
@@ -30,13 +38,6 @@ function findMeaningfulAction(history: any[], completed: number) {
       }
     }
     return history[history.length - 1].action || 'Passed';
-  }
-
-  for (let i = history.length - 1; i >= 0; i--) {
-    const action = history[i].action || '';
-    if (/failed|rejected|vetoed|dismissed|withdrawn|died/i.test(action)) {
-      return action;
-    }
   }
 
   return history[history.length - 1].action || 'Introduced';
