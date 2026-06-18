@@ -25,7 +25,8 @@ function getMOAATagCategory(title: string, summary: string, subjects?: string[])
 
   // Veterans Benefits — direct VA/state benefit programs: disability, compensation, pension, health, grants
   // Check FIRST - catches bills about improving/expanding benefits, VA health, claims, etc.
-  if (/title\s*38|disabilit|combat.*related|va benefit|veteran benefit|health record|suicide prevention|grant fund|va care|va health|va medical|claim|benefit|compensation|pension|expand.*benefit|improve.*benefit|improve.*care|presumption|service.?connection|covid|vaccine|military sexual trauma|sexual trauma|reproductive/i.test(text)) {
+  // Exclude political/social issues like abortion
+  if (!/abortion/i.test(text) && /title\s*38|disabilit|combat.*related|va benefit|veteran benefit|health record|suicide prevention|grant fund|va care|va health|va medical|claim|benefit|compensation|pension|expand.*benefit|improve.*benefit|improve.*care|presumption|service.?connection|covid|vaccine|military sexual trauma|sexual trauma|reproductive.*assist/i.test(text)) {
     return 'Veterans Benefits';
   }
 
