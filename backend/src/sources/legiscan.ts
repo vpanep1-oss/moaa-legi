@@ -132,7 +132,7 @@ function detectCategory(bill: any): string {
   }
 
   // Legal & Justice — courts, guardianship, criminal justice, mentor programs, stolen valor (check before Armed Forces to catch crime bills)
-  if (text.match(/\b(court|guardianship|guardian|criminal|justice|mentor|stolen valor|legal|probate)\b/i)) {
+  if (text.match(/(court|guardianship|guardian|crime|justice|mentor|stolen valor|legal|probate)/i)) {
     return 'Legal & Justice';
   }
 

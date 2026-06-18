@@ -29,7 +29,7 @@ function getMOAATagCategory(title: string, summary: string, subjects?: string[])
   }
 
   // Legal & Justice — courts, guardianship, criminal justice, mentor programs, stolen valor (check before Armed Forces to catch crime bills)
-  if (/\b(court|guardianship|guardian|criminal|justice|mentor|stolen valor|legal|probate)\b/.test(text)) {
+  if (/(court|guardianship|guardian|crime|justice|mentor|stolen valor|legal|probate)/i.test(text)) {
     return 'Legal & Justice';
   }
 
