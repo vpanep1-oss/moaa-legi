@@ -96,8 +96,10 @@ function calculateSimilarity(str1: string, str2: string): number {
                                    /veteran.*benefit|benefit.*veteran|va.*benefit|disability.*compensation/.test(s2);
   const hasMilitaryPropertyBoth = /(military base|military installation)/.test(s1) && /(military base|military installation)/.test(s2) &&
                                    /(property|expropriate|expropriation)/.test(s1) && /(property|expropriate|expropriation)/.test(s2);
+  const hasVACareImprovementBoth = /(improve.*care|availability.*care)/.test(s1) && /(improve.*care|availability.*care)/.test(s2) &&
+                                    /(veteran|defense|va)/.test(s1) && /(veteran|defense|va)/.test(s2);
 
-  if ((hasTitle38Both && hasMSTBoth) || (hasTitle38Both && hasVeteransBenefitsBoth) || hasMilitaryPropertyBoth) {
+  if ((hasTitle38Both && hasMSTBoth) || (hasTitle38Both && hasVeteransBenefitsBoth) || hasMilitaryPropertyBoth || hasVACareImprovementBoth) {
     return 0.75;
   }
 
