@@ -204,7 +204,7 @@ function BillCard({ bills }: { bills: Bill[] }) {
     <li key={primaryBill.id} className="bill-item" data-source={source} style={{ borderLeftColor: tagColor }}>
       <div className="bill-item-header">
         <h3>
-          <Link to={`/bills/${primaryBill.id}`}>{primaryBill.summary}</Link>
+          <Link to={`/bills/${primaryBill.id}`}>{stripParentheses(primaryBill.summary)}</Link>
         </h3>
         <div className="bill-badges">
           <span className={`bill-badge bill-badge-${primaryBill.source}`}>{primaryBill.source}</span>
