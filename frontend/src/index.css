@@ -299,10 +299,12 @@ section h3 {
   font-size: 15px;
   font-weight: 700;
   color: var(--navy);
-  line-height: 1.4;
+  line-height: 1.5;
   word-wrap: break-word;
   white-space: normal;
   margin: 0 0 12px;
+  display: block;
+  overflow: visible;
 }
 
 .bill-item h3 {
