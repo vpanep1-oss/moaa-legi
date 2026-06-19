@@ -281,7 +281,7 @@ export default function BillCategoryList({ bills }: BillCategoryListProps) {
     return <p>No bills found yet. Run the daily ingest or configure API keys.</p>;
   }
 
-  const billGroups = groupSimilarBills(bills, 0.6);
+  const billGroups = groupSimilarBills(bills, 0.85);
 
   return (
     <div className="bill-category-list">
