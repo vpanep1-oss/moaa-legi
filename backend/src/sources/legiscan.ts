@@ -123,13 +123,23 @@ function detectCategory(bill: any): string {
   const subjects = (bill.subjects || []).join(' ').toLowerCase();
   const text = `${title} ${summary} ${subjects}`;
 
+  // Exclude controversial/political issues entirely
+  if (text.match(/abortion/i)) {
+    return 'Other';
+  }
+
   // Primary mechanism-based categorization (not just "who it affects")
   // Check most specific patterns FIRST before general ones
 
+  // Tax & Property — MUST check before Veterans Benefits because "benefit" matches both
+  // tax exemptions, deductions, property transfers, homestead (NOT academic credit or general "home" references)
+  if (text.match(/\b(tax|exemption|deduction|homestead|property transfer|mortgage)\b/i) && !text.match(/va\s|veteran.*benefit|credit.*toward|academic/i)) {
+    return 'Tax & Property';
+  }
+
   // Veterans Benefits — direct VA/state benefit programs: disability, compensation, pension, health, grants
-  // Check FIRST - catches bills about improving/expanding benefits, VA health, claims, etc.
-  // Exclude political/social issues like abortion
-  if (!text.match(/abortion/i) && text.match(/title\s*38|disabilit|combat.*related|va benefit|veteran benefit|health record|suicide prevention|grant fund|va care|va health|va medical|claim|benefit|compensation|pension|expand.*benefit|improve.*benefit|improve.*care|presumption|service.?connection|covid|vaccine|military sexual trauma|sexual trauma|reproductive|doula/i)) {
+  // Check FIRST for VA-specific benefits (avoid matching generic "benefit" in tax bills)
+  if (text.match(/title\s*38|disabilit|combat.*related|va benefit|veteran benefit|health record|mental health|suicide prevention|grant fund|va care|va health|va medical|claim|compensation|pension|expand.*benefit|improve.*benefit|improve.*care|presumption|service.?connection|covid|vaccine|military sexual trauma|sexual trauma|reproductive|doula/i)) {
     return 'Veterans Benefits';
   }
 
@@ -146,11 +156,6 @@ function detectCategory(bill: any): string {
   // Education — schools, staffing, education benefits (NOT VA training programs)
   if (text.match(/\b(school|tuition|gi bill|apprentice|educator|teacher|instructor|student loan|education benefit)\b/i) && !text.match(/va\s|veteran.*health/i)) {
     return 'Education';
-  }
-
-  // Tax & Property — tax exemptions, deductions, property transfers, homestead (NOT academic credit or general "home" references)
-  if (text.match(/\b(tax|exemption|deduction|homestead|property transfer|mortgage)\b/i) && !text.match(/va\s|veteran.*benefit|credit.*toward|academic/i)) {
-    return 'Tax & Property';
   }
 
   // Armed Forces & Security — active duty, National Guard, installations, national security, military recognitions, memorials
