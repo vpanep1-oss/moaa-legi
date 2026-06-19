@@ -209,17 +209,6 @@ function extractBillEntries(response: any) {
     });
 }
 
-async function fetchBillDetail(billId: number) {
-  try {
-    const apiKey = getApiKey();
-    const response = await axios.get(`${API_BASE}?key=${apiKey}&op=getBill&id=${billId}`);
-    return response.data.bill ?? null;
-  } catch (error) {
-    console.warn(`Failed to fetch LegiScan bill ${billId}`, error);
-    return null;
-  }
-}
-
 async function fetchMasterList(state: string): Promise<FetchResult> {
   const apiKey = getApiKey();
   if (!apiKey) {
@@ -271,18 +260,8 @@ async function buildBillList(state: string, normalize: (bill: any) => any): Prom
     return searchResults;
   }
 
-  const detailedBills = await Promise.allSettled(
-    searchResults.bills.map((entry) => {
-      const billId = Number(entry.bill_id || entry.id);
-      return billId ? fetchBillDetail(billId) : Promise.resolve(null);
-    })
-  );
-
-  const fulfilledBills = detailedBills
-    .filter((result) => result.status === 'fulfilled' && result.value)
-    .map((result) => (result as PromiseFulfilledResult<any>).value);
-
-  const veteranRelatedBills = fulfilledBills.filter(isVeteranRelated);
+  // Use search results directly—no need to fetch individual bill details
+  const veteranRelatedBills = searchResults.bills.filter(isVeteranRelated);
 
   const seenBillIds = new Set<string>();
   const dedupedBills = veteranRelatedBills.filter((bill) => {
