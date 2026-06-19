@@ -45,8 +45,8 @@ function getMOAATagCategory(title: string, summary: string, subjects?: string[])
     return 'Education';
   }
 
-  // Tax & Property — tax exemptions, deductions, property transfers, homestead (NOT general "home" references)
-  if (/\b(tax|exemption|deduction|credit|homestead|property transfer|mortgage)\b/.test(text) && !/va\s|veteran.*benefit/.test(text)) {
+  // Tax & Property — tax exemptions, deductions, property transfers, homestead (NOT academic credit or general "home" references)
+  if (/\b(tax|exemption|deduction|homestead|property transfer|mortgage)\b/.test(text) && !/va\s|veteran.*benefit|credit.*toward|academic/.test(text)) {
     return 'Tax & Property';
   }
 

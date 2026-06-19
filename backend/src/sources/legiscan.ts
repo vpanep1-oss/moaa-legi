@@ -148,8 +148,8 @@ function detectCategory(bill: any): string {
     return 'Education';
   }
 
-  // Tax & Property — tax exemptions, deductions, property transfers, homestead (NOT general "home" references)
-  if (text.match(/\b(tax|exemption|deduction|credit|homestead|property transfer|mortgage)\b/i) && !text.match(/va\s|veteran.*benefit/i)) {
+  // Tax & Property — tax exemptions, deductions, property transfers, homestead (NOT academic credit or general "home" references)
+  if (text.match(/\b(tax|exemption|deduction|homestead|property transfer|mortgage)\b/i) && !text.match(/va\s|veteran.*benefit|credit.*toward|academic/i)) {
     return 'Tax & Property';
   }
 
