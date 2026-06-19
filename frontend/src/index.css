@@ -320,10 +320,6 @@ section h3 {
   color: #6b7280;
   font-weight: 500;
   line-height: 1.3;
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
 }
 
 .bill-item-header {
