@@ -74,8 +74,8 @@ function normalizeBill(raw) {
     // Map status text to our three-bucket system
     status: parseStatusText(raw.status || ""),
 
-    // Infer category from subjects and title
-    category: inferCategory(raw),
+    // Use category from backend if available, otherwise infer from text
+    category: (raw.category && normalizeCategory(raw.category)) || inferCategory(raw),
 
     moaaPriority: raw.moaaPriority || false,
 
@@ -84,11 +84,32 @@ function normalizeBill(raw) {
 
     // Join sponsors array into comma-separated string
     sponsors: Array.isArray(raw.sponsors)
-      ? raw.sponsors.join(", ")
+      ? raw.sponsors.filter(s => s).join(", ")
       : (raw.sponsors || ""),
 
     link: raw.billUrl || ""
   };
+}
+
+/**
+ * Normalize category names from backend to dashboard format
+ */
+function normalizeCategory(cat) {
+  if (!cat) return null;
+  const normalized = cat.toLowerCase().replace(/\s+/g, '-');
+  const mapping = {
+    'education': 'education',
+    'employment': 'employment',
+    'tax-property': 'tax',
+    'tax-&-property': 'tax',
+    'veterans-benefits': 'benefits',
+    'legal-justice': 'legal',
+    'legal-&-justice': 'legal',
+    'armed-forces-&-security': 'military',
+    'armed-forces': 'military',
+    'other': 'other'
+  };
+  return mapping[normalized] || null;
 }
 
 /**
