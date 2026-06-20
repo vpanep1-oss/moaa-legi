@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LCOC MOAA Legislation Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-left">
+      <div class="header-badge">⚓</div>
+      <div class="header-title">
+        <h1>LCOC MOAA Legislation Dashboard</h1>
+        <p>Louisiana Council of Chapters · Military Officers Association of America</p>
+      </div>
+    </div>
+    <div class="scope-toggle">
+      <button class="scope-btn active" data-scope="all" onclick="setScope('all', this)">All Bills</button>
+      <button class="scope-btn" data-scope="federal" onclick="setScope('federal', this)">Federal</button>
+      <button class="scope-btn" data-scope="louisiana" onclick="setScope('louisiana', this)">Louisiana</button>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-section">
+    <div class="stats-header">
+      <div>
+        <h2>Bill Summary</h2>
+        <p class="hint">Click any status card to filter the list below — click again to clear</p>
+      </div>
+      <div class="total-pill">
+        <div class="num" id="totalNum">--</div>
+        <div class="lbl">Total Tracked</div>
+      </div>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-card" data-key="passed" onclick="toggleStatusFilter('passed', this)">
+        <div class="stat-label">✓ Passed</div>
+        <div class="stat-value" id="statPassed">--</div>
+        <div class="progress-track"><div class="progress-fill" id="barPassed" style="width:0%"></div></div>
+      </div>
+      <div class="stat-card" data-key="failed" onclick="toggleStatusFilter('failed', this)">
+        <div class="stat-label">✕ Failed</div>
+        <div class="stat-value" id="statFailed">--</div>
+        <div class="progress-track"><div class="progress-fill" id="barFailed" style="width:0%"></div></div>
+      </div>
+      <div class="stat-card" data-key="pending" onclick="toggleStatusFilter('pending', this)">
+        <div class="stat-label">◐ Pending</div>
+        <div class="stat-value" id="statPending">--</div>
+        <div class="progress-track"><div class="progress-fill" id="barPending" style="width:0%"></div></div>
+      </div>
+      <div class="stat-card" data-key="rate">
+        <div class="stat-label">⟳ Pass Rate</div>
+        <div class="stat-value" id="statRate">--<span class="pct">of resolved</span></div>
+        <div class="progress-track"><div class="progress-fill" id="barRate" style="width:0%"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="controls-section">
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="Search bills by title or description..." oninput="render()">
+    </div>
+    <select class="filter-select" id="categorySelect" onchange="render()">
+      <option value="all">All Categories</option>
+      <option value="education">Education</option>
+      <option value="employment">Employment</option>
+      <option value="tax">Tax &amp; Property</option>
+      <option value="benefits">Veterans Benefits</option>
+      <option value="legal">Legal &amp; Justice</option>
+      <option value="military">Armed Forces &amp; Security</option>
+      <option value="other">Other</option>
+    </select>
+    <div id="activeChips"></div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="results-header">
+    <span class="results-count" id="resultsCount"></span>
+  </div>
+  <div class="bill-grid" id="billGrid"></div>
+
+  <div class="footer">
+    <strong>LCOC MOAA</strong> Legislative Affairs Committee &nbsp;·&nbsp; Data from Congress.gov and the Louisiana State Legislature
+  </div>
+
+</div>
+
+<!-- js/api.js must load BEFORE js/dashboard.js — dashboard.js calls
+     fetchBillsFromAPI(), which is defined in api.js -->
+<script src="js/api.js"></script>
+<script src="js/dashboard.js"></script>
+</body>
+</html>
