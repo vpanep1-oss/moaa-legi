@@ -24,12 +24,10 @@ export async function runDailyIngest(): Promise<DailyIngestSummary> {
 
   const federalData = await fetchFederalBills();
   const federalResult: IngestResult = {
-    count: 0,
+    count: federalData.bills.length,
     usedFallback: false,
-    queryUrl: federalData.queryUrl,
-    totalEntries: federalData.totalEntries,
-    matchedEntries: federalData.matchedEntries,
-    rawResponse: federalData.rawResponse
+    totalEntries: federalData.totalFetched,
+    matchedEntries: federalData.totalUpdated
   };
 
   if (!federalData.bills.length) {
@@ -37,21 +35,17 @@ export async function runDailyIngest(): Promise<DailyIngestSummary> {
     updateFederalBills(sampleFederalBills);
     federalResult.count = sampleFederalBills.length;
     federalResult.usedFallback = true;
-    federalResult.rawResponse = null;
   } else {
-    console.log(`Fetched ${federalData.bills.length} federal candidate bills`);
+    console.log(`Fetched ${federalData.bills.length} federal bills with updated details`);
     updateFederalBills(federalData.bills);
-    federalResult.count = federalData.bills.length;
   }
 
   const louisianaData = await fetchLouisianaBills();
   const louisianaResult: IngestResult = {
-    count: 0,
+    count: louisianaData.bills.length,
     usedFallback: false,
-    queryUrl: louisianaData.queryUrl,
-    totalEntries: louisianaData.totalEntries,
-    matchedEntries: louisianaData.matchedEntries,
-    rawResponse: louisianaData.rawResponse
+    totalEntries: louisianaData.totalFetched,
+    matchedEntries: louisianaData.totalUpdated
   };
 
   if (!louisianaData.bills.length) {
@@ -59,11 +53,9 @@ export async function runDailyIngest(): Promise<DailyIngestSummary> {
     updateLouisianaBills(sampleLouisianaBills);
     louisianaResult.count = sampleLouisianaBills.length;
     louisianaResult.usedFallback = true;
-    louisianaResult.rawResponse = null;
   } else {
-    console.log(`Fetched ${louisianaData.bills.length} Louisiana candidate bills`);
+    console.log(`Fetched ${louisianaData.bills.length} Louisiana bills with updated details`);
     updateLouisianaBills(louisianaData.bills);
-    louisianaResult.count = louisianaData.bills.length;
   }
 
   console.log('Ingest completed');

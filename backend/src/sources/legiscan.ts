@@ -5,293 +5,260 @@ const LOUISIANA_STATE = 'LA';
 const FEDERAL_STATE = 'US';
 const API_BASE = 'https://api.legiscan.com/';
 
+// In-memory cache of bills we already have (maps bill_id -> changeHash)
+// In production, this should be in the database
+let billChangeHashCache: { [billId: string]: string } = {};
+
 function getApiKey() {
   return process.env.LEGISCAN_API_KEY ?? '';
 }
 
-type FetchResult = {
-  bills: any[];
-  rawResponse?: any;
-  queryUrl: string;
-  totalEntries: number;
-  matchedEntries: number;
+type Bill = {
+  id: string;
+  source: 'federal' | 'louisiana';
+  title: string;
+  summary: string;
+  status: string;
+  statusCode?: number;
+  introducedDate?: string;
+  lastActionDate?: string;
+  subjects: string[];
+  sponsors: string[];
+  billUrl?: string;
+  changeHash?: string;
+  billNumber?: string;
+  category?: string;
 };
 
-function findMeaningfulAction(history: any[], completed: number) {
-  if (!history || history.length === 0) {
-    return 'Introduced';
-  }
+type FetchResult = {
+  bills: Bill[];
+  queryUrl?: string;
+  totalFetched?: number;
+  totalUpdated?: number;
+};
 
-  // Check failed FIRST to catch "rejected" before other patterns
-  for (let i = history.length - 1; i >= 0; i--) {
-    const action = history[i].action || '';
-    if (/failed|rejected|vetoed|dismissed|withdrawn|died/i.test(action)) {
-      return action;
-    }
-  }
-
-  if (completed === 1) {
-    for (let i = history.length - 1; i >= 0; i--) {
-      const action = history[i].action || '';
-      if (/effective|passed|signed|enacted/i.test(action)) {
-        return action;
-      }
-    }
-    return history[history.length - 1].action || 'Passed';
-  }
-
-  return history[history.length - 1].action || 'Introduced';
-}
-
-function normalizeFederalBill(bill: any) {
-  const statusAction = findMeaningfulAction(bill.history, bill.completed);
-  const subjects = bill.subjects
-    ? Array.isArray(bill.subjects)
-      ? bill.subjects.map((s: any) => (typeof s === 'string' ? s : s.subject_name || String(s)))
-      : []
-    : [];
-  const sponsors = bill.sponsors
-    ? Array.isArray(bill.sponsors)
-      ? bill.sponsors.map((s: any) => (typeof s === 'string' ? s : s.name || String(s)))
-      : bill.sponsor_name
-      ? [bill.sponsor_name]
-      : []
-    : bill.sponsor_name
-    ? [bill.sponsor_name]
-    : [];
-
-  return {
-    id: `federal-${bill.bill_id || bill.id}`,
-    source: 'federal' as const,
-    title: bill.title || bill.short_title || bill.description || 'Unknown bill',
-    summary: bill.summary || bill.description || bill.action || '',
-    status: statusAction,
-    introducedDate: bill.introduced_date || bill.date || bill.session_year || undefined,
-    lastActionDate: bill.last_action_date || bill.date || undefined,
-    subjects,
-    sponsors,
-    billUrl: bill.url || bill.document_url || '',
-    category: detectCategory(bill),
-    billNumber: bill.bill_number || ''
+/**
+ * Parse LegiScan numeric status codes to readable text
+ * 1 = Introduced, 2 = Engrossed, 3 = Enrolled, 4 = Passed, 5 = Vetoed, 6 = Failed
+ */
+function parseStatusCode(code: number): string {
+  const mapping: { [key: number]: string } = {
+    1: 'Introduced',
+    2: 'Engrossed',
+    3: 'Enrolled',
+    4: 'Passed',
+    5: 'Vetoed',
+    6: 'Failed'
   };
+  return mapping[code] || `Status ${code}`;
 }
 
-function normalizeLouisianaBill(bill: any) {
-  const statusAction = findMeaningfulAction(bill.history, bill.completed);
-  const subjects = bill.subjects
-    ? Array.isArray(bill.subjects)
-      ? bill.subjects.map((s: any) => (typeof s === 'string' ? s : s.subject_name || String(s)))
-      : []
-    : [];
-  const sponsors = bill.sponsors
-    ? Array.isArray(bill.sponsors)
-      ? bill.sponsors.map((s: any) => (typeof s === 'string' ? s : s.name || String(s)))
-      : bill.sponsor_name
-      ? [bill.sponsor_name]
-      : []
-    : bill.sponsor_name
-    ? [bill.sponsor_name]
-    : [];
-
-  return {
-    id: `louisiana-${bill.bill_id || bill.id}`,
-    source: 'louisiana' as const,
-    title: bill.title || bill.bill_number || bill.short_title || bill.description || 'Unknown bill',
-    summary: bill.summary || bill.description || bill.action || '',
-    status: statusAction,
-    introducedDate: bill.introduced_date || bill.date || bill.session_year || undefined,
-    lastActionDate: bill.last_action_date || bill.date || undefined,
-    subjects,
-    sponsors,
-    billUrl: bill.url || bill.document_url || '',
-    category: detectCategory(bill),
-    billNumber: bill.bill_number || ''
-  };
-}
-
-function isWithinOneYear(dateStr: string | undefined): boolean {
-  if (!dateStr) return true;
-  const billDate = new Date(dateStr);
-  const today = new Date();
-  const daysDiff = Math.floor((today.getTime() - billDate.getTime()) / (1000 * 60 * 60 * 24));
-  return daysDiff < 365;
-}
-
-function detectCategory(bill: any): string {
-  const title = (bill.title || '').toLowerCase();
-  const summary = (bill.summary || '').toLowerCase();
-  const subjects = (bill.subjects || []).join(' ').toLowerCase();
-  const text = `${title} ${summary} ${subjects}`;
-
-  // Exclude controversial/political issues entirely
-  if (text.match(/abortion/i)) {
-    return 'Other';
-  }
-
-  // Primary mechanism-based categorization (not just "who it affects")
-  // Check most specific patterns FIRST before general ones
-
-  // Tax & Property — MUST check before Veterans Benefits because "benefit" matches both
-  // tax exemptions, deductions, property transfers, homestead (NOT academic credit or general "home" references)
-  if (text.match(/\b(tax|exemption|deduction|homestead|property transfer|mortgage)\b/i) && !text.match(/va\s|veteran.*benefit|credit.*toward|academic/i)) {
-    return 'Tax & Property';
-  }
-
-  // Veterans Benefits — direct VA/state benefit programs: disability, compensation, pension, health, grants
-  // Check FIRST for VA-specific benefits (avoid matching generic "benefit" in tax bills)
-  if (text.match(/title\s*38|disabilit|combat.*related|va benefit|veteran benefit|health record|mental health|suicide prevention|grant fund|va care|va health|va medical|claim|compensation|pension|expand.*benefit|improve.*benefit|improve.*care|presumption|service.?connection|covid|vaccine|military sexual trauma|sexual trauma|reproductive|doula/i)) {
-    return 'Veterans Benefits';
-  }
-
-  // Legal & Justice — courts, guardianship, criminal justice, mentor programs, stolen valor (check before Armed Forces to catch crime bills)
-  if (text.match(/(court|guardianship|crime|justice|mentor|stolen valor|legal|probate)/i)) {
-    return 'Legal & Justice';
-  }
-
-  // Employment — hiring, civil service preference, job categories, work positions (check before Education to catch school guardian jobs)
-  if (text.match(/(employment|hire|hiring|civil service|preference point|job|career|position|warden|guardian|school)/i) && text.match(/(employment|hire|hiring|job|career|position|work|guardian)/i)) {
-    return 'Employment';
-  }
-
-  // Education — schools, staffing, education benefits (NOT VA training programs)
-  if (text.match(/\b(school|tuition|gi bill|apprentice|educator|teacher|instructor|student loan|education benefit)\b/i) && !text.match(/va\s|veteran.*health/i)) {
-    return 'Education';
-  }
-
-  // Armed Forces & Security — active duty, National Guard, installations, national security, military recognitions, memorials
-  if (text.match(/(active duty|national guard|installation|national security|commendation|decoration|medal|honor|recogni|memorial|military service|military base|foreign adversaries)/i)) {
-    return 'Armed Forces & Security';
-  }
-
-  // Default to Veterans Benefits for anything else veteran-related
-  if (text.match(/\bveteran|va\b/i)) {
-    return 'Veterans Benefits';
-  }
-
-  // Other — commemorative, naming, etc.
-  return 'Other';
-}
-
-function isVeteranRelated(bill: any) {
-  const title = (bill.title || '').toLowerCase();
-  const summary = (bill.summary || '').toLowerCase();
-  const textToSearch = `${title} ${summary}`;
-
-  const excludeKeywords = ['appropriation', 'capital outlay', 'elections', 'consumer', 'surveillance', 'commission', 'omnibus', 'commonsense', 'common sense', 'to advance', 'cybersecurity', 'taxation'];
-  const isExcluded = excludeKeywords.some(keyword => textToSearch.includes(keyword));
-  if (isExcluded) return false;
-
-  if (!isWithinOneYear(bill.last_action_date)) return false;
-
-  const hasVeteranKeyword = legislationKeywords.some((keyword: string) => textToSearch.includes(keyword));
-  const titleHasKeyword = legislationKeywords.some((keyword: string) => title.includes(keyword));
-
-  return hasVeteranKeyword && (titleHasKeyword || textToSearch.match(/veteran|military|service member|national guard|combat.*related/i));
-}
-
-function extractBillEntries(response: any) {
-  const searchResult = response.searchresult || response.masterList || response.masterlist || response;
-  if (!searchResult) {
-    return [];
-  }
-
-  if (Array.isArray(searchResult)) {
-    return searchResult;
-  }
-
-  return Object.values(searchResult)
-    .filter((item) => item && typeof item === 'object' && 'bill_id' in item)
-    .flatMap((item: any) => {
-      if (Array.isArray(item)) {
-        return item;
-      }
-      return item;
-    });
-}
-
-async function fetchMasterList(state: string): Promise<FetchResult> {
+/**
+ * Fetch all bills from a state using getMasterList
+ * Returns just the list with bill_id, status, and change_hash
+ */
+async function fetchMasterList(state: string): Promise<any[]> {
   const apiKey = getApiKey();
   if (!apiKey) {
     console.warn('LEGISCAN_API_KEY is not configured');
-    return { bills: [], queryUrl: '', totalEntries: 0, matchedEntries: 0 };
+    return [];
   }
 
-  const query = legislationKeywords.slice(0, 5).join(' OR ');
-  const queryUrl = `${API_BASE}?key=${apiKey}&op=getSearch&state=${state}&query=${encodeURIComponent(query)}`;
+  try {
+    const url = `${API_BASE}?key=${apiKey}&op=getMasterList&state=${state}`;
+    console.log(`Fetching master list for state: ${state}`);
+    const response = await axios.get(url, { timeout: 15000 });
 
-  let allBills: any[] = [];
-  let rawResponse: any = null;
-
-  for (let page = 1; page <= 4; page++) {
-    const pageUrl = `${queryUrl}&page=${page}`;
-    try {
-      const response = await axios.get(pageUrl);
-
-      if (response.data.alert) {
-        console.warn(`LegiScan API alert for state ${state} page ${page}:`, response.data.alert);
-        break;
-      }
-
-      const billEntries = extractBillEntries(response.data);
-      if (billEntries.length === 0) break;
-
-      allBills = allBills.concat(billEntries);
-      if (!rawResponse) rawResponse = response.data;
-
-      console.log(`LegiScan page ${page} for state ${state}: found ${billEntries.length} bills`);
-    } catch (error) {
-      console.warn(`Error fetching page ${page} for state ${state}:`, error);
-      break;
+    if (response.data.alert) {
+      console.warn(`LegiScan alert for ${state}:`, response.data.alert);
+      return [];
     }
+
+    const masterList = response.data.masterlist;
+    if (!Array.isArray(masterList)) {
+      console.warn(`No bills found in master list for ${state}`);
+      return [];
+    }
+
+    console.log(`Master list for ${state}: ${masterList.length} bills available`);
+    return masterList;
+  } catch (error) {
+    console.error(`Error fetching master list for ${state}:`, error);
+    return [];
   }
+}
+
+/**
+ * Fetch detailed bill information from LegiScan
+ * Returns full bill object with status, sponsors, history, etc.
+ */
+async function fetchBillDetail(billId: number): Promise<any | null> {
+  const apiKey = getApiKey();
+  if (!apiKey) return null;
+
+  try {
+    const url = `${API_BASE}?key=${apiKey}&op=getBill&id=${billId}`;
+    const response = await axios.get(url, { timeout: 15000 });
+
+    if (response.data.alert) {
+      console.warn(`LegiScan alert for bill ${billId}:`, response.data.alert);
+      return null;
+    }
+
+    return response.data.bill;
+  } catch (error) {
+    console.error(`Error fetching bill detail for ${billId}:`, error);
+    return null;
+  }
+}
+
+/**
+ * Check if a bill is veteran-related based on title/description
+ */
+function isVeteranRelated(bill: any): boolean {
+  const title = (bill.title || '').toLowerCase();
+  const summary = (bill.summary || bill.description || '').toLowerCase();
+  const subjects = Array.isArray(bill.subjects)
+    ? bill.subjects.map((s: any) => (typeof s === 'string' ? s : s.subject_name || '')).join(' ').toLowerCase()
+    : '';
+
+  const text = `${title} ${summary} ${subjects}`;
+
+  // Exclude non-relevant bills
+  const excludeKeywords = ['appropriation', 'capital outlay', 'consumer', 'surveillance', 'omnibus'];
+  if (excludeKeywords.some((keyword) => text.includes(keyword))) return false;
+
+  // Must match veteran-related keywords
+  return legislationKeywords.some((keyword: string) => text.includes(keyword.toLowerCase())) &&
+    /veteran|military|service member|national guard|armed force/i.test(text);
+}
+
+/**
+ * Categorize a bill based on its content
+ */
+function detectCategory(bill: any): string {
+  const title = (bill.title || '').toLowerCase();
+  const summary = (bill.summary || bill.description || '').toLowerCase();
+  const subjects = Array.isArray(bill.subjects)
+    ? bill.subjects.map((s: any) => (typeof s === 'string' ? s : s.subject_name || '')).join(' ').toLowerCase()
+    : '';
+  const text = `${title} ${summary} ${subjects}`;
+
+  // Abort on controversial topics
+  if (text.match(/abortion/i)) return 'Other';
+
+  if (text.match(/\b(tax|exemption|deduction|homestead|property transfer|mortgage)\b/i)) return 'Tax & Property';
+  if (text.match(/title\s*38|disabilit|combat.*related|va benefit|health record|mental health|suicide|grant|compensation|pension|presumption|service.?connection/i))
+    return 'Veterans Benefits';
+  if (text.match(/(court|guardianship|crime|justice|mentor|stolen valor|legal|probate)/i)) return 'Legal & Justice';
+  if (text.match(/(hire|hiring|civil service|preference|job|career|position|work|warden|guardian)/i) && text.match(/(employment|job|work)/i))
+    return 'Employment';
+  if (text.match(/\b(school|tuition|gi bill|apprentice|educator|teacher|student|education)\b/i)) return 'Education';
+  if (text.match(/(active duty|national guard|installation|national security|commendation|decoration|medal|memorial|military|armed force|foreign|adversary)/i))
+    return 'Armed Forces & Security';
+  if (text.match(/\bveteran|va\b/i)) return 'Veterans Benefits';
+
+  return 'Other';
+}
+
+/**
+ * Normalize a bill from LegiScan getBill response
+ */
+function normalizeBill(bill: any, state: 'federal' | 'louisiana', changeHash: string): Bill {
+  const sponsors = bill.sponsors
+    ? Array.isArray(bill.sponsors)
+      ? bill.sponsors.map((s: any) => (typeof s === 'string' ? s : s.name || s.fullname || '').trim()).filter((s: string) => s)
+      : []
+    : [];
+
+  const subjects = bill.subjects
+    ? Array.isArray(bill.subjects)
+      ? bill.subjects.map((s: any) => (typeof s === 'string' ? s : s.subject_name || '').trim()).filter((s: string) => s)
+      : []
+    : [];
+
+  const statusCode = bill.status ? parseInt(bill.status, 10) : 1;
+  const statusText = parseStatusCode(statusCode);
 
   return {
-    bills: allBills,
-    rawResponse,
-    queryUrl,
-    totalEntries: allBills.length,
-    matchedEntries: allBills.length
+    id: `${state}-${bill.bill_number}`,
+    source: state,
+    title: bill.title || bill.description || 'Unknown bill',
+    summary: bill.summary || bill.description || '',
+    status: statusText,
+    statusCode,
+    introducedDate: bill.introduced_date,
+    lastActionDate: bill.last_action_date,
+    subjects,
+    sponsors,
+    billUrl: bill.url || '',
+    changeHash,
+    billNumber: bill.bill_number,
+    category: detectCategory(bill)
   };
 }
 
-async function buildBillList(state: string, normalize: (bill: any) => any): Promise<FetchResult> {
-  const searchResults = await fetchMasterList(state);
-  if (!searchResults.queryUrl) {
-    return searchResults;
+/**
+ * Main sync function: use getMasterList to find changes, then getBill for details
+ */
+async function syncBillsForState(state: 'federal' | 'louisiana'): Promise<Bill[]> {
+  const stateCode = state === 'federal' ? FEDERAL_STATE : LOUISIANA_STATE;
+  const masterList = await fetchMasterList(stateCode);
+
+  if (masterList.length === 0) {
+    console.warn(`No bills in master list for ${stateCode}`);
+    return [];
   }
 
-  // Use search results directly—no need to fetch individual bill details
-  const veteranRelatedBills = searchResults.bills.filter(isVeteranRelated);
+  const updatedBills: Bill[] = [];
+  let skipped = 0;
 
-  const seenBillIds = new Set<string>();
-  const dedupedBills = veteranRelatedBills.filter((bill) => {
-    const billId = bill.bill_id || bill.id;
-    if (seenBillIds.has(billId)) return false;
-    seenBillIds.add(billId);
-    return true;
-  });
+  for (const masterEntry of masterList) {
+    const billId = masterEntry.bill_id || masterEntry.id;
+    const changeHash = masterEntry.change_hash;
 
-  const sortedBills = dedupedBills.sort((a, b) => {
-    const dateA = new Date(a.last_action_date || 0).getTime();
-    const dateB = new Date(b.last_action_date || 0).getTime();
-    return dateB - dateA;
-  });
+    // Skip if we already have this version
+    if (billChangeHashCache[billId] === changeHash) {
+      skipped++;
+      continue;
+    }
 
-  const bills = sortedBills.slice(0, 40).map(normalize);
+    // Fetch full details
+    const billDetail = await fetchBillDetail(billId);
+    if (!billDetail) continue;
 
+    // Check if veteran-related
+    if (!isVeteranRelated(billDetail)) continue;
+
+    // Normalize and store
+    const normalized = normalizeBill(billDetail, state, changeHash);
+    updatedBills.push(normalized);
+
+    // Update cache
+    billChangeHashCache[billId] = changeHash;
+
+    // Rate limiting: small delay between getBill calls (LegiScan recommends throttling)
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+
+  console.log(`${state}: fetched ${updatedBills.length} updated bills, skipped ${skipped} unchanged`);
+  return updatedBills;
+}
+
+export async function fetchFederalBills(): Promise<FetchResult> {
+  const bills = await syncBillsForState('federal');
   return {
     bills,
-    rawResponse: searchResults.rawResponse,
-    queryUrl: searchResults.queryUrl,
-    totalEntries: searchResults.totalEntries,
-    matchedEntries: dedupedBills.length
+    totalFetched: bills.length,
+    totalUpdated: bills.length
   };
 }
 
-export async function fetchFederalBills() {
-  return buildBillList(FEDERAL_STATE, normalizeFederalBill);
-}
-
-export async function fetchLouisianaBills() {
-  return buildBillList(LOUISIANA_STATE, normalizeLouisianaBill);
+export async function fetchLouisianaBills(): Promise<FetchResult> {
+  const bills = await syncBillsForState('louisiana');
+  return {
+    bills,
+    totalFetched: bills.length,
+    totalUpdated: bills.length
+  };
 }
