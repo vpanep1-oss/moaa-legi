@@ -219,10 +219,6 @@ function render() {
         </div>
       </div>
       <div class="bill-desc">${b.description}</div>
-      <div class="bill-meta">
-        <div><span class="meta-label">Status:</span> ${b.statusText}</div>
-        <div><span class="meta-label">Sponsors:</span> ${b.sponsors}</div>
-      </div>
       <div class="bill-footer">
         <a class="bill-link" href="${b.link}" target="_blank">External bill link ↗</a>
         ${b.moaaPriority ? '<span class="moaa-flag">⭐ MOAA Priority</span>' : ''}
