@@ -51,6 +51,19 @@ router.get('/louisiana', (_req, res) => {
   res.json({ bills: louisianaBillStore, count: louisianaBillStore.length });
 });
 
+router.get('/bills', (_req, res) => {
+  const allBills = [...federalBillStore, ...louisianaBillStore];
+  res.json({
+    bills: allBills.map(bill => ({
+      ...bill,
+      scope: bill.source  // map 'source' to 'scope' for dashboard compatibility
+    })),
+    count: allBills.length,
+    federal: federalBillStore.length,
+    louisiana: louisianaBillStore.length
+  });
+});
+
 router.get('/bills/:id', (req, res) => {
   const bill = findBillById(req.params.id);
   if (!bill) {

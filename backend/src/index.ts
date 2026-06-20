@@ -13,7 +13,14 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(cors({
-  origin: ['https://vpanep1-oss.github.io', 'http://localhost:3000', 'http://localhost:5173'],
+  origin: [
+    'https://moaa-legi.com',
+    'https://www.moaa-legi.com',
+    'https://vpanep1-oss.github.io',
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'http://localhost:8000'
+  ],
   credentials: true
 }));
 app.use(express.json());
