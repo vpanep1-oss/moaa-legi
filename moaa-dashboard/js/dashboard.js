@@ -177,6 +177,13 @@ function setBar(id, pct) {
   });
 }
 
+function cleanTitle(title) {
+  return title
+    .replace(/\s*\([^)]*\)/g, '')  // Remove anything in parentheses
+    .replace(/\s+/g, ' ')           // Collapse multiple spaces
+    .trim();
+}
+
 function render() {
   const search = document.getElementById('searchInput').value.toLowerCase().trim();
   const category = document.getElementById('categorySelect').value;
@@ -211,7 +218,7 @@ function render() {
 
     return `<div class="bill-card" style="--rank-color:${rankColor}; animation-delay:${(i%12)*0.03}s">
       <div class="bill-card-head">
-        <div class="bill-title">${b.title}</div>
+        <div class="bill-title">${cleanTitle(b.title)}</div>
         <div class="badge-group">
           <span class="badge badge-scope">${b.scope === 'federal' ? 'Federal' : 'Louisiana'}</span>
           <span class="badge ${statusBadgeClass}">${statusLabel}</span>
