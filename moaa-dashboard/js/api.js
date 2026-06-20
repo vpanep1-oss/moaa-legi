@@ -137,8 +137,7 @@ function parseStatusText(statusText) {
 
 /**
  * Categorize bills based on subjects and title/summary text.
- * Uses the backend's subject tags (from LegiScan or manually assigned)
- * to classify bills into MOAA-relevant categories.
+ * Priority: keywords in title/summary > subject tags > fallback to Veterans Benefits if subject=veterans
  */
 function inferCategory(raw) {
   const subjects = (raw.subjects || []).join(" ").toLowerCase();
@@ -146,11 +145,16 @@ function inferCategory(raw) {
   const summary = (raw.summary || "").toLowerCase();
   const haystack = subjects + " " + title + " " + summary;
 
+  // Check specific keywords first (highest priority)
   if (/tax|property|homestead|exemption|deduction/.test(haystack)) return "tax";
   if (/school|education|tops|student|tuition|university/.test(haystack)) return "education";
-  if (/employ|hiring|civil service|job|occupation|preference|occupation/.test(haystack)) return "employment";
+  if (/employ|hiring|civil service|job|occupation|preference|work as|work in/.test(haystack)) return "employment";
   if (/disability|benefit|grant|compensation|va \b|pension|retirement|medical/.test(haystack)) return "benefits";
   if (/court|guardian|legal|justice|criminal|judge|veteran status|stolen valor/.test(haystack)) return "legal";
   if (/military|national guard|armed forces|active duty|installation|defense|soldier|service member/.test(haystack)) return "military";
+
+  // Fallback: if subject includes "veterans" but no other category matched, use Veterans Benefits
+  if (/veteran/.test(subjects)) return "benefits";
+
   return "other";
 }
