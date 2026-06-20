@@ -74,14 +74,25 @@ async function fetchMasterList(state: string): Promise<any[]> {
       return [];
     }
 
-    const masterList = response.data.masterlist;
-    if (!Array.isArray(masterList)) {
+    const masterListData = response.data.masterlist;
+    if (!masterListData) {
+      console.warn(`No masterlist in response for ${state}`);
+      return [];
+    }
+
+    // LegiScan returns masterlist as an object: { "session": {...}, "0": {...}, "1": {...}, ... }
+    // Convert to array of bills (skip the "session" key)
+    const bills = Object.entries(masterListData)
+      .filter(([key]) => key !== 'session')
+      .map(([, value]) => value);
+
+    if (bills.length === 0) {
       console.warn(`No bills found in master list for ${state}`);
       return [];
     }
 
-    console.log(`Master list for ${state}: ${masterList.length} bills available`);
-    return masterList;
+    console.log(`Master list for ${state}: ${bills.length} bills available`);
+    return bills;
   } catch (error) {
     console.error(`Error fetching master list for ${state}:`, error);
     return [];
